@@ -1,4 +1,48 @@
 haptics:
-  buttonPress:
+  sharp_state_change:
     DEFAULT: sharp_state_change
-    MX Master 4: completed # Optional: device-specific mappings
+
+  damp_state_change:
+    DEFAULT: damp_state_change
+
+  sharp_collision:
+    DEFAULT: sharp_collision
+
+  damp_collision:
+    DEFAULT: damp_collision
+
+  subtle_collision:
+    DEFAULT: subtle_collision
+
+  happy_alert:
+    DEFAULT: happy_alert
+
+  angry_alert:
+    DEFAULT: angry_alert
+
+  completed:
+    DEFAULT: completed
+
+  square:
+    DEFAULT: square
+
+  wave:
+    DEFAULT: wave
+
+  firework:
+    DEFAULT: firework
+
+  mad:
+    DEFAULT: mad
+
+  knock:
+    DEFAULT: knock
+
+  jingle:
+    DEFAULT: jingle
+
+  ringing:
+    DEFAULT: ringing
+
+  heartbeat:
+    DEFAULT: heartbeat

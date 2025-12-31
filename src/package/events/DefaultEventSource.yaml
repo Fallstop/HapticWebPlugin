@@ -1,4 +1,64 @@
 events:
-  - name: buttonPress
-    displayName: Button Press
-    description: Triggered when the button is pressed
+  - name: sharp_state_change
+    displayName: Sharp State Change
+    description: Short, high-intensity pulse for discrete state transitions
+
+  - name: damp_state_change
+    displayName: Damp State Change
+    description: Gradual intensity change for smooth state transitions
+
+  - name: sharp_collision
+    displayName: Sharp Collision
+    description: High-intensity impact simulation for collision events
+
+  - name: damp_collision
+    displayName: Damp Collision
+    description: Medium-intensity impact with gradual decay
+
+  - name: subtle_collision
+    displayName: Subtle Collision
+    description: Low-intensity feedback for light contact events
+
+  - name: happy_alert
+    displayName: Happy Alert
+    description: Positive feedback pattern for success states
+
+  - name: angry_alert
+    displayName: Angry Alert
+    description: Attention-grabbing pattern for error conditions
+
+  - name: completed
+    displayName: Completed
+    description: Confirmation pattern for task completion
+
+  - name: square
+    displayName: Square
+    description: Sharp-edged waveform with defined start/stop points
+
+  - name: wave
+    displayName: Wave
+    description: Smooth sinusoidal pattern with gradual transitions
+
+  - name: firework
+    displayName: Firework
+    description: Multi-burst pattern with varying intensities
+
+  - name: mad
+    displayName: Mad
+    description: High-frequency chaotic pattern
+
+  - name: knock
+    displayName: Knock
+    description: Repetitive impact pattern
+
+  - name: jingle
+    displayName: Jingle
+    description: Musical-style pattern with multiple tones
+
+  - name: ringing
+    displayName: Ringing
+    description: Continuous oscillating pattern
+
+  - name: heartbeat
+    displayName: Heartbeat
+    description: Rhythmic double-pulse pattern
