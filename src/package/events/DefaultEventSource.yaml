@@ -1,0 +1,4 @@
+events:
+  - name: buttonPress
+    displayName: Button Press
+    description: Triggered when the button is pressed

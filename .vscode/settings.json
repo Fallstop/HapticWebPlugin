@@ -1,0 +1,11 @@
+{
+    "dotnet.defaultSolution": "HapticWebPlugin.sln",
+    "csharp.suppressDotnetRestoreNotification": true,
+    "csharp.enableImportCompletion": true,
+    "csharp.enableRoslynAnalyzers": true,
+    "csharp.format.enable": true,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    }
+}

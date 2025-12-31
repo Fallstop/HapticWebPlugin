@@ -1,0 +1,4 @@
+haptics:
+  buttonPress:
+    DEFAULT: sharp_state_change
+    MX Master 4: completed # Optional: device-specific mappings
