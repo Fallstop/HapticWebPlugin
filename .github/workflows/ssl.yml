@@ -38,7 +38,6 @@ jobs:
             --dns-cloudflare-credentials /cloudflare.ini \
             --dns-cloudflare-propagation-seconds 60 \
             --agree-tos \
-            --manual-public-ip-logging-ok \
             --preferred-challenges dns \
             -m contact@jmw.nz
 
