@@ -32,9 +32,11 @@ namespace Loupedeck.HapticWebPlugin.Helpers
         public CertificateManager(String cacheDirectory)
         {
             this._cacheDirectory = cacheDirectory;
-            this._httpClient = new HttpClient();
+            this._httpClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(30)
+            };
             this._httpClient.DefaultRequestHeaders.Add("User-Agent", "HapticWebPlugin/1.0");
-            this._httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
         }
 
         public async Task<Boolean> InitializeAsync()

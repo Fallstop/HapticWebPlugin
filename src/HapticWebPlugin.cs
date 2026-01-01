@@ -18,6 +18,7 @@ namespace Loupedeck.HapticWebPlugin
 
         private CertificateManager _certificateManager;
         private HttpsServer _httpsServer;
+        private DeviceDetector _deviceDetector;
 
         private static readonly Dictionary<String, String> HapticWaveforms = new Dictionary<String, String>
         {
@@ -50,12 +51,29 @@ namespace Loupedeck.HapticWebPlugin
 
         public override void Load()
         {
+            this._deviceDetector = new DeviceDetector();
+            this._deviceDetector.DeviceStatusChanged += this.OnDeviceStatusChanged;
+            this._deviceDetector.StartPolling(TimeSpan.FromSeconds(5));
+
             this.RegisterHapticEvents();
             _ = this.InitializeServerAsync();
         }
 
+        private void OnDeviceStatusChanged(Object sender, DeviceStatus status)
+        {
+            if (status.IsConnected)
+            {
+                PluginLog.Info($"MX Master 4 connected: {status.DeviceName} via {status.ConnectionType}");
+            }
+            else
+            {
+                PluginLog.Info("MX Master 4 disconnected");
+            }
+        }
+
         public override void Unload()
         {
+            this._deviceDetector?.Dispose();
             this._httpsServer?.Dispose();
             this._certificateManager?.Dispose();
         }
@@ -132,6 +150,14 @@ namespace Loupedeck.HapticWebPlugin
             {
                 result = this.HandleListWaveforms();
             }
+            else if (path == "/devices" && method == "GET")
+            {
+                result = this.HandleListDevices();
+            }
+            else if (path == "/devices/hidpp" && method == "GET")
+            {
+                result = this.HandleHidPlusPlusQuery();
+            }
             else if (path.StartsWith("/haptic/") && method == "POST")
             {
                 var waveform = path.Substring("/haptic/".Length).Trim('/');
@@ -143,18 +169,33 @@ namespace Loupedeck.HapticWebPlugin
 
         private Object HandleHealthCheck()
         {
+            var deviceStatus = this._deviceDetector?.GetCachedStatus();
+
             return new
             {
                 success = true,
                 service = "HapticWebPlugin",
                 version = "1.0.0",
-                deviceStatus = "unknown",
-                deviceNote = "MX Master 4 connection cannot be detected directly. Haptics will be sent if device is connected.",
+                https = new
+                {
+                    enabled = this._certificateManager?.Certificate != null,
+                    status = this._certificateManager?.Status.ToString() ?? "Unknown",
+                    expires = this._certificateManager?.CertificateExpiry?.ToString("yyyy-MM-dd") ?? "N/A"
+                },
+                device = new
+                {
+                    connected = deviceStatus?.IsConnected ?? false,
+                    connectionType = deviceStatus?.ConnectionType.ToString() ?? "Unknown",
+                    name = deviceStatus?.DeviceName,
+                    productId = deviceStatus?.ProductId,
+                    vendorId = deviceStatus?.VendorId
+                },
                 endpoints = new
                 {
                     health = "GET /",
                     listWaveforms = "GET /waveforms",
-                    triggerHaptic = "POST /haptic/{waveform}"
+                    triggerHaptic = "POST /haptic/{waveform}",
+                    listDevices = "GET /devices"
                 }
             };
         }
@@ -167,10 +208,12 @@ namespace Loupedeck.HapticWebPlugin
                 waveformList.Add(new { name = waveform.Key, description = waveform.Value });
             }
 
+            var deviceStatus = this._deviceDetector?.GetCachedStatus();
+
             return new
             {
                 success = true,
-                deviceStatus = "unknown",
+                deviceConnected = deviceStatus?.IsConnected ?? false,
                 count = HapticWaveforms.Count,
                 waveforms = waveformList
             };
@@ -193,6 +236,8 @@ namespace Loupedeck.HapticWebPlugin
                 };
             }
 
+            var deviceStatus = this._deviceDetector?.GetCachedStatus();
+
             try
             {
                 this.PluginEvents.RaiseEvent(waveform);
@@ -202,14 +247,83 @@ namespace Loupedeck.HapticWebPlugin
                 {
                     success = true,
                     waveform = waveform,
-                    deviceStatus = "unknown",
-                    note = "Haptic event raised. Will trigger if MX Master 4 is connected."
+                    deviceConnected = deviceStatus?.IsConnected ?? false,
+                    connectionType = deviceStatus?.ConnectionType.ToString() ?? "Unknown"
                 };
             }
             catch (Exception ex)
             {
                 PluginLog.Error(ex, $"Failed to trigger haptic: {waveform}");
                 return new { success = false, error = $"Failed to trigger haptic: {ex.Message}" };
+            }
+        }
+
+        private Object HandleListDevices()
+        {
+            var deviceStatus = this._deviceDetector?.GetCachedStatus();
+            var allDevices = this._deviceDetector?.ListAllLogitechDevices() ?? new List<Object>();
+
+            return new
+            {
+                success = true,
+                mxMaster4 = new
+                {
+                    connected = deviceStatus?.IsConnected ?? false,
+                    connectionType = deviceStatus?.ConnectionType.ToString() ?? "None",
+                    name = deviceStatus?.DeviceName,
+                    productId = deviceStatus?.ProductId,
+                    vendorId = deviceStatus?.VendorId
+                },
+                logitechDevices = allDevices
+            };
+        }
+
+        private Object HandleHidPlusPlusQuery()
+        {
+            try
+            {
+                var hidpp = new HidPlusPlusProtocol();
+
+                // Try querying connected devices
+                var devicesResult = hidpp.QueryBoltReceiverDevices();
+
+                // Also try connection state query
+                var stateResult = hidpp.QueryReceiverConnectionState();
+
+                return new
+                {
+                    success = true,
+                    deviceQuery = new
+                    {
+                        success = devicesResult.Success,
+                        error = devicesResult.Error,
+                        connectedDevices = devicesResult.ConnectedDevices.Select(d => new
+                        {
+                            index = d.DeviceIndex,
+                            name = d.DeviceName,
+                            deviceType = d.DeviceType,
+                            wirelessPid = d.WirelessPid,
+                            isConnected = d.IsConnected
+                        }).ToList()
+                    },
+                    connectionState = new
+                    {
+                        success = stateResult.Success,
+                        error = stateResult.Error,
+                        rawResponse = stateResult.RawResponse,
+                        connectedDevices = stateResult.ConnectedDevices.Select(d => new
+                        {
+                            index = d.DeviceIndex,
+                            name = d.DeviceName,
+                            isConnected = d.IsConnected
+                        }).ToList()
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "HID++ query failed");
+                return new { success = false, error = ex.Message };
             }
         }
 
