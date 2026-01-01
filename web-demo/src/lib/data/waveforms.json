@@ -1,0 +1,589 @@
+[
+    {
+        "name": "Sharp Collision",
+        "api_name": "sharp_collision",
+        "category": "Precision enhancers",
+        "tags": [
+            "Precision enhancer"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Sharp State Change",
+        "api_name": "sharp_state_change",
+        "category": "Progress indicators",
+        "tags": [
+            "Progress indicator"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Knock",
+        "api_name": "knock",
+        "category": "Incoming events",
+        "tags": [
+            "Incoming events"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Damp Collision",
+        "api_name": "damp_collision",
+        "category": "Precision enhancers",
+        "tags": [
+            "Precision enhancer"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 2
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Mad",
+        "api_name": "mad",
+        "category": "Progress indicators",
+        "tags": [
+            "Progress indicator"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            }
+        ]
+    },
+    {
+        "name": "Ringing",
+        "api_name": "ringing",
+        "category": "Incoming events",
+        "tags": [
+            "Incoming events"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 1
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 2
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 2
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 2
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 3
+            }
+        ]
+    },
+    {
+        "name": "Subtle Collision",
+        "api_name": "subtle_collision",
+        "category": "Precision enhancers",
+        "tags": [
+            "Precision enhancer"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 1
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 1
+            }
+        ]
+    },
+    {
+        "name": "Completed",
+        "api_name": "completed",
+        "category": "Progress indicators",
+        "tags": [
+            "Progress indicator"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Jingle",
+        "api_name": "jingle",
+        "category": "Incoming events",
+        "tags": [
+            "Incoming events"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 3
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 3
+            }
+        ]
+    },
+    {
+        "name": "Damp State Change",
+        "api_name": "damp_state_change",
+        "category": "Precision enhancers",
+        "tags": [
+            "Precision enhancer"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Firework",
+        "api_name": "firework",
+        "category": "Progress indicators",
+        "tags": [
+            "Progress indicator"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Happy Alert",
+        "api_name": "happy_alert",
+        "category": "Progress indicators",
+        "tags": [
+            "Progress indicator",
+            "Incoming events"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 1
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 1
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 1
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 3
+            }
+        ]
+    },
+    {
+        "name": "Wave",
+        "api_name": "wave",
+        "category": "Progress indicators",
+        "tags": [
+            "Progress indicator",
+            "Incoming events"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 1
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 1
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 2
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 3
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Angry Alert",
+        "api_name": "angry_alert",
+        "category": "Progress indicators",
+        "tags": [
+            "Progress indicator"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 2
+            },
+            {
+                "type": "bar",
+                "haptic_type": "vibration",
+                "strength": 3
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            }
+        ]
+    },
+    {
+        "name": "Square",
+        "api_name": "square",
+        "category": "Progress indicators",
+        "tags": [
+            "Progress indicator"
+        ],
+        "waveform_encoding": [
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            },
+            {
+                "type": "dot",
+                "haptic_type": "silent"
+            },
+            {
+                "type": "bar",
+                "haptic_type": "knock",
+                "strength": 2
+            }
+        ]
+    }
+]

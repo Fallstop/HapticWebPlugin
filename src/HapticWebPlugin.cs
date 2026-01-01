@@ -137,6 +137,16 @@ namespace Loupedeck.HapticWebPlugin
 
                 PluginLog.Verbose($"HTTP {method} {path}");
 
+                if (method == "OPTIONS")
+                {
+                    response.Headers.Add("Access-Control-Allow-Origin", "*");
+                    response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                    response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+                    response.StatusCode = 200;
+                    response.Close();
+                    return;
+                }
+
                 Object result;
 
                 if (path == "/" && method == "GET")
