@@ -30,6 +30,10 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+  </ItemGroup>
+
   <Target Name="CopyPackage" AfterTargets="PostBuildEvent">
     <Message Text="📦 Copying package files..." Importance="High" />
     <ItemGroup>

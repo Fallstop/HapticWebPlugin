@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:8765';
+const API_BASE = 'https://local.jmw.nz:41443';
 
 import waveformsData from '$lib/data/waveforms.json';
 

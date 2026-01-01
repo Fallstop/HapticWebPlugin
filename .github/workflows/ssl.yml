@@ -50,11 +50,35 @@ jobs:
         working-directory: ssl
         run: |
           mkdir ${{ matrix.domain }}
-          mv letsencrypt/archive/${{ matrix.domain }}/fullchain1.pem ${{ matrix.domain }}/${{ matrix.domain }}.crt
-          mv letsencrypt/archive/${{ matrix.domain }}/privkey1.pem ${{ matrix.domain }}/${{ matrix.domain }}.key
+          cp letsencrypt/archive/${{ matrix.domain }}/fullchain1.pem ${{ matrix.domain }}/${{ matrix.domain }}.crt
+          cp letsencrypt/archive/${{ matrix.domain }}/privkey1.pem ${{ matrix.domain }}/${{ matrix.domain }}.key
+          # Create PFX for .NET (no password for easier loading)
+          openssl pkcs12 -export -out ${{ matrix.domain }}/${{ matrix.domain }}.pfx \
+            -inkey letsencrypt/archive/${{ matrix.domain }}/privkey1.pem \
+            -in letsencrypt/archive/${{ matrix.domain }}/fullchain1.pem \
+            -passout pass:
+          # Password-protected zip to prevent CA from scanning and revoking
           zip -P password -r ${{ matrix.domain }}.zip ${{ matrix.domain }}
 
-      # will store certs as built artifacts, commit part is removed to keep example small
+      - name: commit to orphan branch
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create orphan branch or reset it
+          git checkout --orphan certs-temp
+          git rm -rf .
+
+          # Add only the zip file
+          cp ssl/${{ matrix.domain }}.zip .
+          git add ${{ matrix.domain }}.zip
+          git commit -m "Update SSL certificates $(date -u +%Y-%m-%d)"
+
+          # Force push to certs branch
+          git push origin certs-temp:certs --force
+
+      # Only upload the password-protected zip as artifact
       - name: artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -47,7 +47,7 @@
           class="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
           <div class="flex items-center gap-2">
             <Zap class="w-4 h-4 text-primary" />
-            <span>Local HTTP API on port 8765</span>
+            <span>Local HTTPS API on port 41443</span>
           </div>
           <Separator orientation="vertical" class="h-4" />
           <div class="flex items-center gap-2">
@@ -159,7 +159,7 @@
       </div>
       <p class="text-sm text-muted-foreground">
         All endpoints are available at <code class="text-primary"
-          >http://127.0.0.1:8765</code>
+          >https://local.jmw.nz:41443</code>
       </p>
     </section>
   </main>

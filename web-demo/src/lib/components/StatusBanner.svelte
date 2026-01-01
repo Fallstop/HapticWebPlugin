@@ -13,7 +13,7 @@
     <MonitorSmartphone class="h-4 w-4 text-amber-400" />
     <AlertTitle class="text-amber-400">Desktop Only</AlertTitle>
     <AlertDescription class="text-amber-300/80">
-      This demo requires the plugin running on localhost:8765
+      This demo requires the plugin running on local.jmw.nz:41443
     </AlertDescription>
   </Alert>
 

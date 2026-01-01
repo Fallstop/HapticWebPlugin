@@ -9,14 +9,15 @@ namespace Loupedeck.HapticWebPlugin
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Loupedeck.HapticWebPlugin.Helpers;
+
     public class HapticWebPlugin : Plugin
     {
-        private const Int32 ServerPort = 8765;
-        private const String ServerHost = "127.0.0.1";
+        private const Int32 HttpPort = 41080;
+        private const Int32 HttpsPort = 41443;
 
-        private HttpListener _httpListener;
-        private CancellationTokenSource _cts;
-        private Task _serverTask;
+        private CertificateManager _certificateManager;
+        private HttpsServer _httpsServer;
 
         private static readonly Dictionary<String, String> HapticWaveforms = new Dictionary<String, String>
         {
@@ -50,137 +51,94 @@ namespace Loupedeck.HapticWebPlugin
         public override void Load()
         {
             this.RegisterHapticEvents();
-            this.StartHttpServer();
+            _ = this.InitializeServerAsync();
         }
 
         public override void Unload()
         {
-            this.StopHttpServer();
+            this._httpsServer?.Dispose();
+            this._certificateManager?.Dispose();
         }
 
-        private void RegisterHapticEvents()
-        {
-            foreach (var waveform in HapticWaveforms)
-            {
-                this.PluginEvents.AddEvent(waveform.Key, waveform.Key, waveform.Value);
-            }
-            PluginLog.Info($"Registered {HapticWaveforms.Count} haptic events");
-        }
-
-        private void StartHttpServer()
+        private async Task InitializeServerAsync()
         {
             try
             {
-                this._cts = new CancellationTokenSource();
-                this._httpListener = new HttpListener();
-                this._httpListener.Prefixes.Add($"http://{ServerHost}:{ServerPort}/");
-                this._httpListener.Start();
+                var pluginDataDir = this.GetPluginDataDirectory();
+                var certCacheDir = Path.Combine(pluginDataDir, "certificates");
 
-                this._serverTask = Task.Run(() => this.HandleRequestsAsync(this._cts.Token));
-                PluginLog.Info($"HTTP server started on http://{ServerHost}:{ServerPort}/");
+                this._certificateManager = new CertificateManager(certCacheDir);
+                var certLoaded = await this._certificateManager.InitializeAsync();
+
+                this.UpdatePluginStatus();
+
+                this._httpsServer = new HttpsServer(
+                    HttpPort,
+                    HttpsPort,
+                    this._certificateManager.Certificate,
+                    this.HandleHttpRequest);
+
+                this._httpsServer.Start();
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "Failed to start HTTP server");
+                PluginLog.Error(ex, "Failed to initialize server");
+                this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, $"Server initialization failed: {ex.Message}");
             }
         }
 
-        private void StopHttpServer()
+        private void UpdatePluginStatus()
         {
-            try
+            switch (this._certificateManager.Status)
             {
-                this._cts?.Cancel();
-                this._httpListener?.Stop();
-                this._httpListener?.Close();
-                this._serverTask?.Wait(TimeSpan.FromSeconds(5));
-                PluginLog.Info("HTTP server stopped");
-            }
-            catch (Exception ex)
-            {
-                PluginLog.Warning(ex, "Error stopping HTTP server");
-            }
-        }
-
-        private async Task HandleRequestsAsync(CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested && this._httpListener.IsListening)
-            {
-                try
-                {
-                    var context = await this._httpListener.GetContextAsync().ConfigureAwait(false);
-                    _ = Task.Run(() => this.ProcessRequest(context), cancellationToken);
-                }
-                catch (HttpListenerException) when (cancellationToken.IsCancellationRequested)
-                {
+                case CertificateStatus.Error:
+                    this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, this._certificateManager.StatusMessage);
                     break;
-                }
-                catch (ObjectDisposedException)
-                {
+
+                case CertificateStatus.Expired:
+                    this.OnPluginStatusChanged(
+                        Loupedeck.PluginStatus.Warning,
+                        this._certificateManager.StatusMessage,
+                        "https://github.com/fallstop/HapticWebPlugin/actions",
+                        "Check GitHub Actions");
                     break;
-                }
-                catch (Exception ex)
-                {
-                    PluginLog.Error(ex, "Error handling HTTP request");
-                }
+
+                case CertificateStatus.ExpiringSoon:
+                    this.OnPluginStatusChanged(
+                        Loupedeck.PluginStatus.Warning,
+                        this._certificateManager.StatusMessage,
+                        "https://github.com/fallstop/HapticWebPlugin/actions",
+                        "Check GitHub Actions");
+                    break;
+
+                case CertificateStatus.Valid:
+                    this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, null);
+                    break;
+
+                default:
+                    break;
             }
         }
 
-        private void ProcessRequest(HttpListenerContext context)
+        private Task<Object> HandleHttpRequest(String method, String path)
         {
-            var request = context.Request;
-            var response = context.Response;
+            Object result = null;
 
-            try
+            if (path == "/" && method == "GET")
             {
-                var path = request.Url?.AbsolutePath?.ToLowerInvariant() ?? "/";
-                var method = request.HttpMethod.ToUpperInvariant();
-
-                PluginLog.Verbose($"HTTP {method} {path}");
-
-                if (method == "OPTIONS")
-                {
-                    response.Headers.Add("Access-Control-Allow-Origin", "*");
-                    response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-                    response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
-                    response.Headers.Add("Access-Control-Allow-Private-Network", "true");
-                    response.StatusCode = 200;
-                    response.Close();
-                    return;
-                }
-
-                Object result;
-
-                if (path == "/" && method == "GET")
-                {
-                    result = this.HandleHealthCheck();
-                }
-                else if (path == "/waveforms" && method == "GET")
-                {
-                    result = this.HandleListWaveforms();
-                }
-                else if (path.StartsWith("/haptic/") && method == "POST")
-                {
-                    var waveform = path.Substring("/haptic/".Length).Trim('/');
-                    result = this.HandleTriggerHaptic(waveform);
-                }
-                else
-                {
-                    response.StatusCode = 404;
-                    result = new { success = false, error = "Not found" };
-                }
-
-                this.WriteJsonResponse(response, result);
+                result = this.HandleHealthCheck();
             }
-            catch (Exception ex)
+            else if (path == "/waveforms" && method == "GET")
             {
-                PluginLog.Error(ex, "Error processing request");
-                response.StatusCode = 500;
-                this.WriteJsonResponse(response, new { success = false, error = ex.Message });
+                result = this.HandleListWaveforms();
             }
-            finally
+            else if (path.StartsWith("/haptic/") && method == "POST")
             {
-                response.Close();
+                var waveform = path.Substring("/haptic/".Length).Trim('/');
+                result = this.HandleTriggerHaptic(waveform);
             }
+
+            return Task.FromResult(result);
         }
 
         private Object HandleHealthCheck()
@@ -255,15 +213,13 @@ namespace Loupedeck.HapticWebPlugin
             }
         }
 
-        private void WriteJsonResponse(HttpListenerResponse response, Object data)
+        private void RegisterHapticEvents()
         {
-            response.ContentType = "application/json";
-            response.Headers.Add("Access-Control-Allow-Origin", "*");
-
-            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-            var buffer = Encoding.UTF8.GetBytes(json);
-            response.ContentLength64 = buffer.Length;
-            response.OutputStream.Write(buffer, 0, buffer.Length);
+            foreach (var waveform in HapticWaveforms)
+            {
+                this.PluginEvents.AddEvent(waveform.Key, waveform.Key, waveform.Value);
+            }
+            PluginLog.Info($"Registered {HapticWaveforms.Count} haptic events");
         }
     }
 }
