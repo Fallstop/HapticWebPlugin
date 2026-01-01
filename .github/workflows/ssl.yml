@@ -1,0 +1,63 @@
+name: ssl
+
+on:
+  schedule:
+    - cron: 0 8 1 * *
+  workflow_dispatch:
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+jobs:
+  ssl:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        domain:
+          # domain that has a 127.0.0.1 A record
+          - local.jmw.nz
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: cloudflare
+        run: |
+          mkdir -p ssl
+          echo "dns_cloudflare_api_token = $CLOUDFLARE_API_TOKEN" > ssl/cloudflare.ini
+
+      - name: certbot
+        working-directory: ssl
+        run: |
+          docker run --rm \
+            -v $PWD/cloudflare.ini:/cloudflare.ini \
+            -v $PWD/letsencrypt:/etc/letsencrypt \
+            certbot/dns-cloudflare certonly \
+            --non-interactive \
+            --domains ${{ matrix.domain }} \
+            --dns-cloudflare \
+            --dns-cloudflare-credentials /cloudflare.ini \
+            --dns-cloudflare-propagation-seconds 60 \
+            --agree-tos \
+            --manual-public-ip-logging-ok \
+            --preferred-challenges dns \
+            -m contact@jmw.nz
+
+      - name: chown
+        working-directory: ssl
+        # whoami - uid=1001 gid=121, user: runner, group: docker
+        run: sudo chown -R 1001:121 letsencrypt
+
+      - name: package
+        working-directory: ssl
+        run: |
+          mkdir ${{ matrix.domain }}
+          mv letsencrypt/archive/${{ matrix.domain }}/fullchain1.pem ${{ matrix.domain }}/${{ matrix.domain }}.crt
+          mv letsencrypt/archive/${{ matrix.domain }}/privkey1.pem ${{ matrix.domain }}/${{ matrix.domain }}.key
+          zip -P password -r ${{ matrix.domain }}.zip ${{ matrix.domain }}
+
+      # will store certs as built artifacts, commit part is removed to keep example small
+      - name: artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.domain }}
+          path: ssl/${{ matrix.domain }}.zip
