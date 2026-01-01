@@ -5,6 +5,9 @@ on:
     - cron: 0 8 1 * *
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
