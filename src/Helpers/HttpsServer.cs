@@ -49,7 +49,7 @@ namespace Loupedeck.HapticWebPlugin.Helpers
 
             if (this._certificate == null)
             {
-                this._bindError = "No SSL certificate available";
+                this._bindError = "Server can't start without SSL certificate";
                 PluginLog.Error(this._bindError);
                 return;
             }
@@ -80,7 +80,7 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                 ex.SocketErrorCode == SocketError.AddressAlreadyInUse ||
                 ex.SocketErrorCode == SocketError.AccessDenied)
             {
-                this._bindError = $"Port {this._httpsPort} is already in use or access denied";
+                this._bindError = $"Port {this._httpsPort} is already in use. Close any other apps using this port.";
                 PluginLog.Error(ex, this._bindError);
             }
             catch (Exception ex)

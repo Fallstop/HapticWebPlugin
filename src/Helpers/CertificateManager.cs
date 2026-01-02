@@ -54,7 +54,7 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                     if (!downloaded && !this.HasCachedCertificate())
                     {
                         this.Status = CertificateStatus.Error;
-                        this.StatusMessage = "No cached certificate and unable to download from GitHub. Check internet connection.";
+                        this.StatusMessage = "Can't download SSL certificate. Check your internet connection and try restarting the plugin.";
                         PluginLog.Error(this.StatusMessage);
                         return false;
                     }
@@ -66,7 +66,7 @@ namespace Loupedeck.HapticWebPlugin.Helpers
             {
                 PluginLog.Error(ex, "Failed to initialize certificate manager");
                 this.Status = CertificateStatus.Error;
-                this.StatusMessage = $"Certificate initialization failed: {ex.Message}";
+                this.StatusMessage = $"SSL certificate setup failed. Try restarting the plugin.";
                 return false;
             }
         }
@@ -233,7 +233,7 @@ namespace Loupedeck.HapticWebPlugin.Helpers
             if (!File.Exists(certPath))
             {
                 this.Status = CertificateStatus.Error;
-                this.StatusMessage = "Certificate file not found in cache";
+                this.StatusMessage = "SSL certificate not found. Check your internet connection and restart the plugin.";
                 return false;
             }
 
@@ -245,7 +245,7 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                 if (DateTime.UtcNow > this.CertificateExpiry)
                 {
                     this.Status = CertificateStatus.Expired;
-                    this.StatusMessage = $"SSL certificate expired on {this.CertificateExpiry:yyyy-MM-dd}. HTTPS may not work correctly.";
+                    this.StatusMessage = $"SSL certificate expired. Restart the plugin to download a new one.";
                     PluginLog.Warning(this.StatusMessage);
                     return true;
                 }
@@ -254,14 +254,14 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                 if (daysUntilExpiry <= CertExpiryWarningDays)
                 {
                     this.Status = CertificateStatus.ExpiringSoon;
-                    this.StatusMessage = $"SSL certificate expires in {(Int32)daysUntilExpiry} days ({this.CertificateExpiry:yyyy-MM-dd})";
+                    this.StatusMessage = $"SSL certificate expires in {(Int32)daysUntilExpiry} days. It should have auto-renwed by now.";
                     PluginLog.Warning(this.StatusMessage);
                     return true;
                 }
 
                 this.Status = CertificateStatus.Valid;
-                this.StatusMessage = $"SSL certificate valid until {this.CertificateExpiry:yyyy-MM-dd}";
-                PluginLog.Info(this.StatusMessage);
+                this.StatusMessage = null;
+                PluginLog.Info($"SSL certificate valid until {this.CertificateExpiry:yyyy-MM-dd}");
                 return true;
             }
             catch (Exception ex)

@@ -89,7 +89,7 @@ namespace Loupedeck.HapticWebPlugin
             catch (Exception ex)
             {
                 PluginLog.Error(ex, "Failed to initialize server");
-                this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, $"Server initialization failed: {ex.Message}");
+                this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, "Server failed to start. Try restarting the plugin.");
             }
         }
 
@@ -105,16 +105,16 @@ namespace Loupedeck.HapticWebPlugin
                     this.OnPluginStatusChanged(
                         Loupedeck.PluginStatus.Warning,
                         this._certificateManager.StatusMessage,
-                        "https://github.com/fallstop/HapticWebPlugin/actions",
-                        "Check GitHub Actions");
+                        "https://github.com/fallstop/HapticWebPlugin/issues",
+                        "Report Issue");
                     break;
 
                 case CertificateStatus.ExpiringSoon:
                     this.OnPluginStatusChanged(
                         Loupedeck.PluginStatus.Warning,
                         this._certificateManager.StatusMessage,
-                        "https://github.com/fallstop/HapticWebPlugin/actions",
-                        "Check GitHub Actions");
+                        null,
+                        null);
                     break;
 
                 case CertificateStatus.Valid:
