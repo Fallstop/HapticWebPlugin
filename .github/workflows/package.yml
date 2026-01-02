@@ -1,35 +1,48 @@
 name: Package Plugin
 
 on:
-    push:
-        branches: ["main"]
-    pull_request:
-        branches: ["main"]
-    workflow_dispatch:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Setup .NET
-              uses: actions/setup-dotnet@v4
-              with:
-                  dotnet-version: 8.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
 
-            - name: Install logiplugintool
-              run: dotnet tool install --global logiplugintool
+      - name: Install logiplugintool
+        run: dotnet tool install --global logiplugintool
 
-            - name: Build
-              run: dotnet build -c Release
+      - name: Extract PluginApi.dll
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ./lib
+          $pluginApi = Get-ChildItem -Path $env:USERPROFILE\.dotnet\tools\.store -Filter PluginApi.dll -Recurse | Select-Object -First 1
+          if ($pluginApi) {
+              Copy-Item -Path $pluginApi.FullName -Destination ./lib/PluginApi.dll
+              Write-Host "Copied PluginApi.dll to ./lib/"
+          } else {
+              Write-Error "PluginApi.dll not found in dotnet tools store."
+              exit 1
+          }
 
-            - name: Package Plugin
-              run: logiplugintool pack ./bin/Release ./HapticWeb.lplug4
+      - name: Build
+        run: dotnet build -c Release
 
-            - name: Upload Plugin Artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: HapticWeb-Plugin
-                  path: ./HapticWeb.lplug4
+      - name: Package Plugin
+        run: logiplugintool pack ./bin/Release ./HapticWeb.lplug4
+
+      - name: Upload Plugin Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HapticWeb-Plugin
+          path: ./HapticWeb.lplug4

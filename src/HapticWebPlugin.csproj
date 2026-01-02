@@ -26,7 +26,8 @@
 
   <ItemGroup>
     <Reference Include="PluginApi">
-      <HintPath>$(PluginApiDir)PluginApi.dll</HintPath>
+      <HintPath Condition="Exists('$(PluginApiDir)PluginApi.dll')">$(PluginApiDir)PluginApi.dll</HintPath>
+      <HintPath Condition="!Exists('$(PluginApiDir)PluginApi.dll')">..\lib\PluginApi.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -44,7 +45,7 @@
     <Message Text="✅ Package files copied to $(OutputPath)..\" Importance="High" />
   </Target>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CI)' == ''">
     <Exec Condition="$(OS) == 'Windows_NT'" Command="echo $(BaseOutputPath)$(Configuration)\ &gt; &quot;$(PluginDir)$(ProjectName).link&quot;" />
     <Exec Condition="$(OS) != 'Windows_NT'" Command="echo $(BaseOutputPath)$(Configuration)\ &gt; $(PluginDir)$(ProjectName).link" />
     <Message Text="🔨 Created plugin link at: $(PluginDir)$(ProjectName).link" Importance="High" />
