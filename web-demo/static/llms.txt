@@ -1,0 +1,94 @@
+# HapticWeb
+
+> A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTPS server and WebSocket API.
+
+HapticWeb enables web applications to trigger haptic feedback on Logitech MX Master 4 mice through a simple REST and WebSocket API running locally.
+
+## Website
+
+- Homepage: https://haptics.jmw.nz
+- Source Code: https://github.com/fallstop/HapticWebPlugin
+
+## Pages
+
+- [Home](https://haptics.jmw.nz/): Overview of the HapticWeb plugin and its capabilities
+- [Install](https://haptics.jmw.nz/install): Installation guide for the plugin
+- [Integrate](https://haptics.jmw.nz/integrate): Developer guide for adding haptics to web apps
+- [API Reference](https://haptics.jmw.nz/api): Complete REST and WebSocket API documentation
+- [Playground](https://haptics.jmw.nz/playground): Interactive demo to try all 16 haptic waveforms
+
+## Requirements
+
+- Logitech MX Master 4 mouse
+- Logi Options+ installed
+- Logi Plugin Service running
+
+## API Overview
+
+The plugin runs an HTTPS server on `https://local.jmw.nz:41443/` when loaded.
+
+### REST Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Health check with service info and available endpoints |
+| `/waveforms` | GET | List all 15 available haptic waveforms |
+| `/haptic/{waveform}` | POST | Trigger a specific haptic waveform |
+
+### WebSocket Endpoint
+
+`wss://local.jmw.nz:41443/ws`
+
+Send a single byte containing the waveform index (0-14) to trigger haptic feedback.
+
+## Available Waveforms
+
+| Waveform | Index | Category |
+|----------|-------|----------|
+| `sharp_collision` | 0 | Precision enhancers |
+| `sharp_state_change` | 1 | Progress indicators |
+| `knock` | 2 | Incoming events |
+| `damp_collision` | 3 | Precision enhancers |
+| `mad` | 4 | Progress indicators |
+| `ringing` | 5 | Incoming events |
+| `subtle_collision` | 6 | Precision enhancers |
+| `completed` | 7 | Progress indicators |
+| `jingle` | 8 | Incoming events |
+| `damp_state_change` | 9 | Precision enhancers |
+| `firework` | 10 | Progress indicators |
+| `happy_alert` | 11 | Progress indicators |
+| `wave` | 12 | Progress indicators |
+| `angry_alert` | 13 | Progress indicators |
+| `square` | 14 | Progress indicators |
+
+## Quick Start
+
+### REST API Example
+
+```bash
+# Trigger haptic feedback
+curl -X POST -d '' https://local.jmw.nz:41443/haptic/sharp_collision
+```
+
+### WebSocket Example (JavaScript)
+
+```javascript
+const ws = new WebSocket('wss://local.jmw.nz:41443/ws');
+
+ws.onopen = () => {
+  // Trigger "completed" waveform (index 7)
+  ws.send(new Uint8Array([7]));
+};
+```
+
+## Technical Details
+
+- **Server:** NetCoreServer-based HTTPS/WSS
+- **Port:** 41443 (HTTPS only)
+- **Certificate:** Auto-managed, uses local.jmw.nz domain
+- **CORS:** Enabled for any origin
+- **Binding:** 127.0.0.1 only
+
+## License
+
+MIT License - See https://github.com/fallstop/HapticWebPlugin/blob/main/LICENSE.md

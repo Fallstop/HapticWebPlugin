@@ -1,3 +1,9 @@
 # allow crawling everything by default
 User-agent: *
 Disallow:
+
+# Sitemap
+Sitemap: https://haptics.jmw.nz/sitemap.xml
+
+# LLM documentation
+# See https://llmstxt.org/ for more information

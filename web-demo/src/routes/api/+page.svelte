@@ -27,7 +27,6 @@
 <div class="max-w-6xl mx-auto px-4 py-12">
   <!-- Header -->
   <div class="space-y-4 mb-12">
-    <Badge variant="secondary">API Reference</Badge>
     <h1 class="text-4xl font-bold">API Documentation</h1>
     <p class="text-lg text-muted-foreground">
       Complete reference for the REST and WebSocket APIs.

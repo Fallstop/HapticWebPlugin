@@ -43,7 +43,7 @@
       <!-- Left: Text content -->
       <div class="space-y-6">
         <div class="flex items-center gap-3">
-          <Badge variant="secondary">Logi Actions SDK</Badge>
+          <Badge variant="outline">Logi Actions SDK</Badge>
           <Badge variant="outline">Open Source</Badge>
         </div>
 
