@@ -12,13 +12,13 @@ name: HapticWeb
 displayName: Haptic Web Plugin
 
 # Short description of the plugin.
-description: Add a short description of the plugin here.
+description: Exposes MX Master 4 haptic feedback via a local HTTPS server and WebSocket API for web applications.
 
 # Name of the plugin library file.
 pluginFileName: HapticWebPlugin.dll
 
 # Plugin version.
-version: 1.1
+version: 1.2
 
 # Author of the plugin. The author can be a company or an individual developer.
 author: Jasper M-W
@@ -38,20 +38,10 @@ pluginFolderWin: bin
 # This parameter is required to support Mac.
 pluginFolderMac: bin
 
-# List of devices the plugin is optimized for.
+# This is not correct, but the docs don't have a category for the MX mice
 supportedDevices:
     # LoupedeckCtFamily covers the following devices: Loupedeck CT, Live and Live S,
-    # Razer Stream Controller, and Razer Stream Controller X.
     - LoupedeckCtFamily
-
-    # Logitech MX Master 4 and other MX Master mice.
-    - LogiMasterFamily
-
-    # Logitech MX Creative Console.
-    - LogiCreativeConsoleFamily
-
-    # LoupedeckPlusFamily covers Loupedeck+ device. Uncomment the following line to support Loupedeck+.
-    - LoupedeckPlusFamily
 
 # List of plugin capabilities.
 pluginCapabilities:
@@ -74,7 +64,7 @@ minimumLoupedeckVersion: 6.2
 license: MIT
 
 # URL of the plugin license.
-licenseUrl: https://opensource.org/licenses/MIT
+licenseUrl: https://github.com/Fallstop/HapticWebPlugin/blob/main/LICENSE.md
 # URL of the support page where the users can send improvement suggestions and report bugs.
 # The URL is shown in Loupedeck Marketplace. The page can be for example a GitHub issues page.
 # NOTE: This setting is recommended when publishing the plugin in Loupedeck Marketplace.
