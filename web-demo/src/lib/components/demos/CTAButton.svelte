@@ -2,15 +2,18 @@
   import { Button } from "$lib/components/ui/button";
   import {
     getSelectedWaveform,
-    triggerSelectedHapticWs,
-  } from "$lib/haptics.svelte";
+    isConnected,
+    triggerSelectedHaptic,
+  } from "$lib/connection.svelte";
   import WaveformEncoding from "../WaveformEncoding.svelte";
 
   let isAnimating = $state(false);
+  const connected = $derived(isConnected());
 
   function handleClick() {
+    if (!connected) return;
     isAnimating = true;
-    triggerSelectedHapticWs();
+    triggerSelectedHaptic();
     setTimeout(() => {
       isAnimating = false;
     }, 300);
@@ -18,7 +21,7 @@
 </script>
 
 <div
-  class="flex flex-col items-center gap-4 p-6 rounded-xl bg-linear-to-br from-primary/20 to-primary/5 border border-primary/20">
+  class="flex flex-col items-center gap-4 p-6 rounded-xl bg-muted/30 border border-border">
   <h3 class="text-lg font-semibold">Click to Feel</h3>
   <p class="text-sm text-muted-foreground text-center">
     Press the button to trigger <span class="font-semibold text-primary"
@@ -26,6 +29,7 @@
   </p>
   <Button
     size="lg"
+    disabled={!connected}
     class="text-lg px-4 py-6 transition-transform {isAnimating
       ? 'scale-95'
       : ''}"
@@ -37,4 +41,7 @@
         size="sm" />
     </div>
   </Button>
+  {#if !connected}
+    <p class="text-xs text-muted-foreground">Connect your mouse to enable</p>
+  {/if}
 </div>

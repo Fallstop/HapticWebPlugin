@@ -1,19 +1,22 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge";
   import * as Card from "$lib/components/ui/card";
-  import { CATEGORY_INFO, WAVEFORMS } from "$lib/haptics";
   import {
     getSelectedWaveform,
     getSelectedWaveformApiName,
+    isConnected,
     setSelectedWaveform,
-    triggerHapticWs,
-  } from "$lib/haptics.svelte";
+    triggerHaptic,
+  } from "$lib/connection.svelte";
+  import { CATEGORY_INFO, WAVEFORMS } from "$lib/haptics";
   import Check from "@lucide/svelte/icons/check";
   import WaveformEncoding from "./WaveformEncoding.svelte";
 
+  const connected = $derived(isConnected());
+
   function handleSelect(waveformApiName: string) {
     setSelectedWaveform(waveformApiName);
-    triggerHapticWs(waveformApiName);
+    if (connected) triggerHaptic(waveformApiName);
   }
 
   // Group waveforms by category
@@ -71,6 +74,13 @@
           {getSelectedWaveform().category}
         </Badge>
       </h3>
+      <div class="text-xs text-muted-foreground">
+        Api Name:
+        <code
+          class="font-mono bg-background/50 px-2 py-0.5 rounded mt-1 inline-block">
+          {getSelectedWaveformApiName()}
+        </code>
+      </div>
     </div>
     <div class="p-4 rounded-lg bg-background/50">
       <WaveformEncoding
@@ -112,15 +122,8 @@
                   encoding={waveform.waveform_encoding}
                   size="sm" />
               </div>
-              <span
-                class="text-xs font-medium text-center leading-tight bg-background/50 px-2 py-1 rounded select-text cursor-text font-mono"
-                role="button"
-                tabindex="0"
-                onclick={(e) => e.stopPropagation()}
-                onkeydown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") e.stopPropagation();
-                }}>
-                {waveform.api_name}
+              <span class="font-medium text-center leading-tight">
+                {waveform.name}
               </span>
             </Card.Content>
           </Card.Root>

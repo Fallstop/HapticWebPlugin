@@ -1,7 +1,7 @@
 
 <h1 align="center">
   <br>
-  <a href="https://haptics.jmw.nz">
+  <a href="https://haptics.jmw.nz" target="_blank">
     <img src="web-demo/static/og-image.png" alt="HapticWebPlugin" width="600" />
   </a>
 </h1>

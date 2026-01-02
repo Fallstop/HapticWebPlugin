@@ -9,8 +9,8 @@
   } from "$lib/components/ui/card";
   import { Separator } from "$lib/components/ui/separator";
   import { API_BASE_URL, API_HOST, API_PORT } from "$lib/config";
+  import { triggerHaptic } from "$lib/connection.svelte";
   import { WAVEFORMS } from "$lib/haptics";
-  import { triggerHapticWs } from "$lib/haptics.svelte";
   import Check from "@lucide/svelte/icons/check";
   import Copy from "@lucide/svelte/icons/copy";
   import Terminal from "@lucide/svelte/icons/terminal";
@@ -69,7 +69,7 @@
   let copiedIndex = $state<number | null>(null);
 
   async function copyToClipboard(text: string, index: number) {
-    triggerHapticWs("damp_collision");
+    triggerHaptic("damp_collision");
     await navigator.clipboard.writeText(text);
     copiedIndex = index;
     setTimeout(() => {

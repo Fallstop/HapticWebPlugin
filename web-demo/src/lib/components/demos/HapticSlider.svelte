@@ -1,17 +1,18 @@
 <script lang="ts">
   import * as Slider from "$lib/components/ui/slider";
-  import { triggerHapticWs } from "$lib/haptics.svelte";
+  import { isConnected, triggerHaptic } from "$lib/connection.svelte";
 
   let value = $state(50);
   let lastTickValue = $state(50);
   const tickInterval = 5;
+  const connected = $derived(isConnected());
 
   function handleValueChange(newValue: number) {
     const currentTick = Math.floor(newValue / tickInterval) * tickInterval;
     const lastTick = Math.floor(lastTickValue / tickInterval) * tickInterval;
 
-    if (currentTick !== lastTick) {
-      triggerHapticWs("sharp_collision");
+    if (currentTick !== lastTick && connected) {
+      triggerHaptic("sharp_collision");
     }
 
     lastTickValue = newValue;
@@ -26,13 +27,14 @@
     Drag the slider and feel a tick every {tickInterval}%
   </p>
 
-  <div class="w-full max-w-md space-y-4">
+  <div class="w-full max-w-md space-y-4 {!connected ? 'opacity-50' : ''}">
     <Slider.Root
       type="single"
       {value}
       onValueChange={handleValueChange}
       max={100}
       step={tickInterval}
+      disabled={!connected}
       class="w-full &_[data-slot=slider-thumb]]:size-8 **:data-[slot=slider-thumb]:border-2" />
 
     <div class="flex justify-between text-xs text-muted-foreground">
@@ -45,4 +47,7 @@
       <span class="text-2xl font-bold text-primary">{value}%</span>
     </div>
   </div>
+  {#if !connected}
+    <p class="text-xs text-muted-foreground">Connect your mouse to enable</p>
+  {/if}
 </div>

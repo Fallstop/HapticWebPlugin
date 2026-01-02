@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
-  import { triggerHapticWs } from "$lib/haptics.svelte";
+  import { isConnected, triggerHaptic } from "$lib/connection.svelte";
   import Play from "@lucide/svelte/icons/play";
   import Square from "@lucide/svelte/icons/square";
 
@@ -8,11 +8,12 @@
   let ballPosition = $state(0);
   let animationFrame: number;
   let bounceCount = $state(0);
+  const connected = $derived(isConnected());
 
   const WAVEFORM_ID = "subtle_collision";
 
   function startAnimation() {
-    if (isPlaying) return;
+    if (isPlaying || !connected) return;
     isPlaying = true;
     bounceCount = 0;
     animate();
@@ -47,7 +48,7 @@
 
       if (progress >= 1) {
         // Ball hit the ground - trigger haptic
-        triggerHapticWs(WAVEFORM_ID);
+        triggerHaptic(WAVEFORM_ID);
         bounceCount++;
 
         if (bounceCount < 5) {
@@ -72,7 +73,9 @@
   </p>
 
   <div
-    class="relative w-full h-32 bg-linear-to-b from-transparent to-muted/50 rounded-lg overflow-hidden">
+    class="relative w-full h-32 bg-linear-to-b from-transparent to-muted/50 rounded-lg overflow-hidden {!connected
+      ? 'opacity-50'
+      : ''}">
     <!-- Ground line -->
     <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary/50"></div>
 
@@ -85,7 +88,7 @@
   </div>
 
   <div class="flex gap-2">
-    <Button onclick={startAnimation} disabled={isPlaying}>
+    <Button onclick={startAnimation} disabled={isPlaying || !connected}>
       <Play class="w-4 h-4 mr-1" /> Start
     </Button>
     <Button variant="outline" onclick={stopAnimation} disabled={!isPlaying}>
@@ -93,7 +96,9 @@
     </Button>
   </div>
 
-  {#if isPlaying}
+  {#if !connected}
+    <p class="text-xs text-muted-foreground">Connect your mouse to enable</p>
+  {:else if isPlaying}
     <p class="text-xs text-muted-foreground">
       Bounce {bounceCount}/5
     </p>
