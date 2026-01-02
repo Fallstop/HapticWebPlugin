@@ -1,9 +1,8 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
-  import { healthCheck, triggerWaveform } from "$lib/haptics";
+  import { triggerHapticWs } from "$lib/haptics.svelte";
   import Play from "@lucide/svelte/icons/play";
   import Square from "@lucide/svelte/icons/square";
-  import { onMount } from "svelte";
 
   let isPlaying = $state(false);
   let ballPosition = $state(0);
@@ -11,10 +10,6 @@
   let bounceCount = $state(0);
 
   const WAVEFORM_ID = "subtle_collision";
-
-  onMount(() => {
-    healthCheck();
-  });
 
   function startAnimation() {
     if (isPlaying) return;
@@ -52,7 +47,7 @@
 
       if (progress >= 1) {
         // Ball hit the ground - trigger haptic
-        triggerWaveform(WAVEFORM_ID);
+        triggerHapticWs(WAVEFORM_ID);
         bounceCount++;
 
         if (bounceCount < 5) {

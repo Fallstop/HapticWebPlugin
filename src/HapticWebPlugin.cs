@@ -67,7 +67,7 @@ namespace Loupedeck.HapticWebPlugin
                 var certCacheDir = Path.Combine(pluginDataDir, "certificates");
 
                 this._certificateManager = new CertificateManager(certCacheDir);
-                var certLoaded = await this._certificateManager.InitializeAsync();
+                await this._certificateManager.InitializeAsync();
 
                 this.UpdatePluginStatus();
 
@@ -75,9 +75,16 @@ namespace Loupedeck.HapticWebPlugin
                     HttpPort,
                     HttpsPort,
                     this._certificateManager.Certificate,
-                    this.HandleHttpRequest);
+                    this.HandleHttpRequest,
+                    this.RunHapticByIndex,
+                    HapticWaveforms);
 
                 this._httpsServer.Start();
+
+                if (!String.IsNullOrEmpty(this._httpsServer.BindError))
+                {
+                    this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, this._httpsServer.BindError);
+                }
             }
             catch (Exception ex)
             {
@@ -183,22 +190,27 @@ namespace Loupedeck.HapticWebPlugin
                 };
             }
 
-            try
+            PluginLog.Verbose($"Queueing haptic: {waveform}");
+            Task.Run(() =>
             {
-                this.PluginEvents.RaiseEvent(waveform);
-                PluginLog.Info($"Triggered haptic: {waveform}");
-
-                return new
+                PluginLog.Verbose($"Starting haptic task: {waveform}");
+                try
                 {
-                    success = true,
-                    waveform = waveform
-                };
-            }
-            catch (Exception ex)
+                    this.PluginEvents.RaiseEvent(waveform);
+                    PluginLog.Info($"Triggered haptic: {waveform}");
+                }
+                catch (Exception ex)
+                {
+                    PluginLog.Error(ex, $"Failed haptic task: {waveform}");
+                }
+            });
+
+            PluginLog.Verbose($"Returning response for: {waveform}");
+            return new
             {
-                PluginLog.Error(ex, $"Failed to trigger haptic: {waveform}");
-                return new { success = false, error = $"Failed to trigger haptic: {ex.Message}" };
-            }
+                success = true,
+                waveform = waveform
+            };
         }
 
         private void RegisterHapticEvents()
@@ -208,6 +220,26 @@ namespace Loupedeck.HapticWebPlugin
                 this.PluginEvents.AddEvent(waveform, waveform, null);
             }
             PluginLog.Info($"Registered {HapticWaveforms.Count} haptic events");
+        }
+
+        private void RunHapticByIndex(Int32 index)
+        {
+            if (index < 0 || index >= HapticWaveforms.Count)
+            {
+                PluginLog.Warning($"Invalid haptic index: {index}");
+                return;
+            }
+
+            var waveform = HapticWaveforms[index];
+            try
+            {
+                this.PluginEvents.RaiseEvent(waveform);
+                PluginLog.Verbose($"Triggered haptic by index: {index} -> {waveform}");
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, $"Failed to trigger haptic: {waveform}");
+            }
         }
     }
 }

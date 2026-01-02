@@ -1,18 +1,19 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge";
   import * as Card from "$lib/components/ui/card";
-  import { CATEGORY_INFO, triggerWaveform, WAVEFORMS } from "$lib/haptics";
+  import { CATEGORY_INFO, WAVEFORMS } from "$lib/haptics";
   import {
     getSelectedWaveform,
     getSelectedWaveformApiName,
     setSelectedWaveform,
+    triggerHapticWs,
   } from "$lib/haptics.svelte";
   import Check from "@lucide/svelte/icons/check";
   import WaveformEncoding from "./WaveformEncoding.svelte";
 
   function handleSelect(waveformApiName: string) {
     setSelectedWaveform(waveformApiName);
-    triggerWaveform(waveformApiName);
+    triggerHapticWs(waveformApiName);
   }
 
   // Group waveforms by category

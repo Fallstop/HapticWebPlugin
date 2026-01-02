@@ -1,17 +1,16 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
-  import { triggerWaveform } from "$lib/haptics";
   import {
     getSelectedWaveform,
-    getSelectedWaveformApiName,
+    triggerSelectedHapticWs,
   } from "$lib/haptics.svelte";
   import WaveformEncoding from "../WaveformEncoding.svelte";
 
   let isAnimating = $state(false);
 
-  async function handleClick() {
+  function handleClick() {
     isAnimating = true;
-    await triggerWaveform(getSelectedWaveformApiName());
+    triggerSelectedHapticWs();
     setTimeout(() => {
       isAnimating = false;
     }, 300);

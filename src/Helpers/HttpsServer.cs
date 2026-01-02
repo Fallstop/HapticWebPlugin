@@ -2,39 +2,42 @@ namespace Loupedeck.HapticWebPlugin.Helpers
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Net;
-    using System.Net.Security;
     using System.Net.Sockets;
-    using System.Security.Authentication;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Text.Json;
-    using System.Threading;
-    using System.Threading.Tasks;
+
+    using NetCoreServer;
 
     public class HttpsServer : IDisposable
     {
-        private readonly Int32 _httpPort;
         private readonly Int32 _httpsPort;
         private readonly X509Certificate2 _certificate;
-        private readonly Func<String, String, Task<Object>> _requestHandler;
+        private readonly Func<String, String, System.Threading.Tasks.Task<Object>> _requestHandler;
+        private readonly Action<Int32> _runHapticByIndex;
+        private readonly IReadOnlyList<String> _waveforms;
 
-        private TcpListener _httpListener;
-        private TcpListener _httpsListener;
-        private CancellationTokenSource _cts;
-        private Task _httpTask;
-        private Task _httpsTask;
+        private HapticWssServer _server;
         private Boolean _isRunning;
+        private String _bindError;
 
         public Boolean IsRunning => this._isRunning;
+        public String BindError => this._bindError;
 
-        public HttpsServer(Int32 httpPort, Int32 httpsPort, X509Certificate2 certificate, Func<String, String, Task<Object>> requestHandler)
+        public HttpsServer(
+            Int32 httpPort, // Ignored - HTTPS only
+            Int32 httpsPort,
+            X509Certificate2 certificate,
+            Func<String, String, System.Threading.Tasks.Task<Object>> requestHandler,
+            Action<Int32> runHapticByIndex,
+            IReadOnlyList<String> waveforms)
         {
-            this._httpPort = httpPort;
             this._httpsPort = httpsPort;
             this._certificate = certificate;
             this._requestHandler = requestHandler;
+            this._runHapticByIndex = runHapticByIndex;
+            this._waveforms = waveforms;
         }
 
         public void Start()
@@ -44,26 +47,47 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                 return;
             }
 
-            this._cts = new CancellationTokenSource();
-
-            this._httpListener = new TcpListener(IPAddress.Loopback, this._httpPort);
-            this._httpListener.Start();
-            this._httpTask = Task.Run(() => this.AcceptConnectionsAsync(this._httpListener, false, this._cts.Token));
-            PluginLog.Info($"HTTP server started on http://127.0.0.1:{this._httpPort}/");
-
-            if (this._certificate != null)
+            if (this._certificate == null)
             {
-                this._httpsListener = new TcpListener(IPAddress.Loopback, this._httpsPort);
-                this._httpsListener.Start();
-                this._httpsTask = Task.Run(() => this.AcceptConnectionsAsync(this._httpsListener, true, this._cts.Token));
-                PluginLog.Info($"HTTPS server started on https://local.jmw.nz:{this._httpsPort}/");
-            }
-            else
-            {
-                PluginLog.Warning("No SSL certificate available, HTTPS server not started");
+                this._bindError = "No SSL certificate available";
+                PluginLog.Error(this._bindError);
+                return;
             }
 
-            this._isRunning = true;
+            try
+            {
+                var context = new SslContext(System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13, this._certificate);
+
+                this._server = new HapticWssServer(
+                    context,
+                    IPAddress.Loopback,
+                    this._httpsPort,
+                    this._requestHandler,
+                    this._runHapticByIndex,
+                    this._waveforms);
+
+                if (!this._server.Start())
+                {
+                    this._bindError = $"Failed to start server on port {this._httpsPort}";
+                    PluginLog.Error(this._bindError);
+                    return;
+                }
+
+                this._isRunning = true;
+                PluginLog.Info($"HTTPS/WSS server started on https://local.jmw.nz:{this._httpsPort}/");
+            }
+            catch (SocketException ex) when (
+                ex.SocketErrorCode == SocketError.AddressAlreadyInUse ||
+                ex.SocketErrorCode == SocketError.AccessDenied)
+            {
+                this._bindError = $"Port {this._httpsPort} is already in use or access denied";
+                PluginLog.Error(ex, this._bindError);
+            }
+            catch (Exception ex)
+            {
+                this._bindError = $"Failed to start server: {ex.Message}";
+                PluginLog.Error(ex, "Server startup error");
+            }
         }
 
         public void Stop()
@@ -73,187 +97,179 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                 return;
             }
 
-            this._cts?.Cancel();
-            this._httpListener?.Stop();
-            this._httpsListener?.Stop();
-
-            try
-            {
-                Task.WaitAll(new[] { this._httpTask, this._httpsTask }.Where(t => t != null).ToArray(), TimeSpan.FromSeconds(5));
-            }
-            catch (AggregateException)
-            {
-            }
-
+            this._server?.Stop();
             this._isRunning = false;
-            PluginLog.Info("HTTP/HTTPS servers stopped");
-        }
-
-        private async Task AcceptConnectionsAsync(TcpListener listener, Boolean useSsl, CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var client = await listener.AcceptTcpClientAsync(cancellationToken);
-                    _ = Task.Run(() => this.HandleClientAsync(client, useSsl, cancellationToken), cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-                catch (SocketException) when (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    PluginLog.Error(ex, "Error accepting connection");
-                }
-            }
-        }
-
-        private async Task HandleClientAsync(TcpClient client, Boolean useSsl, CancellationToken cancellationToken)
-        {
-            Stream stream = null;
-
-            try
-            {
-                client.ReceiveTimeout = 30000;
-                client.SendTimeout = 30000;
-
-                stream = client.GetStream();
-
-                if (useSsl)
-                {
-                    var sslStream = new SslStream(stream, false);
-                    await sslStream.AuthenticateAsServerAsync(
-                        this._certificate,
-                        clientCertificateRequired: false,
-                        enabledSslProtocols: SslProtocols.Tls12 | SslProtocols.Tls13,
-                        checkCertificateRevocation: false);
-                    stream = sslStream;
-                }
-
-                await this.ProcessHttpRequestAsync(stream, cancellationToken);
-            }
-            catch (AuthenticationException ex)
-            {
-                PluginLog.Warning(ex, "SSL authentication failed");
-            }
-            catch (IOException ex) when (ex.InnerException is SocketException)
-            {
-                // Client disconnected
-            }
-            catch (Exception ex)
-            {
-                PluginLog.Error(ex, "Error handling client");
-            }
-            finally
-            {
-                stream?.Dispose();
-                client?.Dispose();
-            }
-        }
-
-        private async Task ProcessHttpRequestAsync(Stream stream, CancellationToken cancellationToken)
-        {
-            var buffer = new Byte[8192];
-            var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-
-            if (bytesRead == 0)
-            {
-                return;
-            }
-
-            var requestText = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-            var lines = requestText.Split(new[] { "\r\n" }, StringSplitOptions.None);
-
-            if (lines.Length == 0)
-            {
-                return;
-            }
-
-            var requestLine = lines[0].Split(' ');
-            if (requestLine.Length < 2)
-            {
-                return;
-            }
-
-            var method = requestLine[0].ToUpperInvariant();
-            var path = requestLine[1].ToLowerInvariant();
-
-            PluginLog.Verbose($"HTTP {method} {path}");
-
-            Object responseData;
-            var statusCode = 200;
-            var statusText = "OK";
-
-            if (method == "OPTIONS")
-            {
-                await this.SendCorsPreflightResponse(stream);
-                return;
-            }
-
-            try
-            {
-                responseData = await this._requestHandler(method, path);
-
-                if (responseData == null)
-                {
-                    statusCode = 404;
-                    statusText = "Not Found";
-                    responseData = new { success = false, error = "Not found" };
-                }
-            }
-            catch (Exception ex)
-            {
-                statusCode = 500;
-                statusText = "Internal Server Error";
-                responseData = new { success = false, error = ex.Message };
-            }
-
-            await this.SendJsonResponse(stream, statusCode, statusText, responseData);
-        }
-
-        private async Task SendCorsPreflightResponse(Stream stream)
-        {
-            var response = new StringBuilder();
-            response.AppendLine("HTTP/1.1 200 OK");
-            response.AppendLine("Access-Control-Allow-Origin: *");
-            response.AppendLine("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-            response.AppendLine("Access-Control-Allow-Headers: Content-Type");
-            response.AppendLine("Access-Control-Allow-Private-Network: true");
-            response.AppendLine("Content-Length: 0");
-            response.AppendLine("Connection: close");
-            response.AppendLine();
-
-            var responseBytes = Encoding.UTF8.GetBytes(response.ToString());
-            await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
-        }
-
-        private async Task SendJsonResponse(Stream stream, Int32 statusCode, String statusText, Object data)
-        {
-            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-            var bodyBytes = Encoding.UTF8.GetBytes(json);
-
-            var response = new StringBuilder();
-            response.AppendLine($"HTTP/1.1 {statusCode} {statusText}");
-            response.AppendLine("Content-Type: application/json; charset=utf-8");
-            response.AppendLine("Access-Control-Allow-Origin: *");
-            response.AppendLine("Access-Control-Allow-Private-Network: true");
-            response.AppendLine($"Content-Length: {bodyBytes.Length}");
-            response.AppendLine("Connection: close");
-            response.AppendLine();
-
-            var headerBytes = Encoding.UTF8.GetBytes(response.ToString());
-            await stream.WriteAsync(headerBytes, 0, headerBytes.Length);
-            await stream.WriteAsync(bodyBytes, 0, bodyBytes.Length);
+            PluginLog.Info("HTTPS/WSS server stopped");
         }
 
         public void Dispose()
         {
             this.Stop();
+            this._server?.Dispose();
+        }
+    }
+
+    internal class HapticWssServer : WssServer
+    {
+        private readonly Func<String, String, System.Threading.Tasks.Task<Object>> _requestHandler;
+        private readonly Action<Int32> _runHapticByIndex;
+        private readonly IReadOnlyList<String> _waveforms;
+
+        public HapticWssServer(
+            SslContext context,
+            IPAddress address,
+            Int32 port,
+            Func<String, String, System.Threading.Tasks.Task<Object>> requestHandler,
+            Action<Int32> runHapticByIndex,
+            IReadOnlyList<String> waveforms)
+            : base(context, address, port)
+        {
+            this._requestHandler = requestHandler;
+            this._runHapticByIndex = runHapticByIndex;
+            this._waveforms = waveforms;
+
+            // Disable WebSocket compression to avoid RSV1 bit issues
+            this.OptionNoDelay = true;
+        }
+
+        protected override SslSession CreateSession()
+        {
+            return new HapticWssSession(this, this._requestHandler, this._runHapticByIndex, this._waveforms);
+        }
+
+        protected override void OnError(SocketError error)
+        {
+            PluginLog.Error($"WSS server error: {error}");
+        }
+    }
+
+    internal class HapticWssSession : WssSession
+    {
+        private readonly Func<String, String, System.Threading.Tasks.Task<Object>> _requestHandler;
+        private readonly Action<Int32> _runHapticByIndex;
+        private readonly IReadOnlyList<String> _waveforms;
+
+        public HapticWssSession(
+            WssServer server,
+            Func<String, String, System.Threading.Tasks.Task<Object>> requestHandler,
+            Action<Int32> runHapticByIndex,
+            IReadOnlyList<String> waveforms)
+            : base(server)
+        {
+            this._requestHandler = requestHandler;
+            this._runHapticByIndex = runHapticByIndex;
+            this._waveforms = waveforms;
+        }
+
+        public override void OnWsConnected(HttpRequest request)
+        {
+            PluginLog.Info($"WebSocket connected: {Id}");
+        }
+
+        public override void OnWsDisconnected()
+        {
+            PluginLog.Verbose($"WebSocket disconnected: {Id}");
+        }
+
+        public override void OnWsReceived(Byte[] buffer, Int64 offset, Int64 size)
+        {
+            if (size >= 1)
+            {
+                var index = (Int32)buffer[offset];
+
+                if (index >= 0 && index < this._waveforms.Count)
+                {
+                    this._runHapticByIndex(index);
+                    PluginLog.Verbose($"WebSocket haptic triggered: index={index}, waveform={this._waveforms[index]}");
+                }
+                else
+                {
+                    PluginLog.Warning($"WebSocket received invalid haptic index: {index}");
+                }
+            }
+        }
+
+        protected override void OnReceivedRequest(HttpRequest request)
+        {
+            var method = request.Method;
+            var path = request.Url;
+
+            // Let base class handle WebSocket upgrade requests
+            // WebSocket upgrades come as GET with Upgrade: websocket header
+            // After upgrade, OnReceivedRequest shouldn't be called for WS frames
+            // but if it is, checking for path helps avoid breaking things
+            if (method == "GET" && path == "/ws")
+            {
+                // This was a WebSocket upgrade - base class handles it via OnReceivedRequestHeader
+                // Just return and let WssSession handle WebSocket frames
+                return;
+            }
+
+            PluginLog.Verbose($"HTTPS {method} {path}");
+
+            // Handle CORS preflight
+            if (method == "OPTIONS")
+            {
+                this.SendCorsPreflightResponse();
+                return;
+            }
+
+            // Handle HTTP requests (not WebSocket)
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    var result = await this._requestHandler(method, path);
+
+                    if (result == null)
+                    {
+                        this.SendJsonResponse(404, new { success = false, error = "Not found" });
+                        return;
+                    }
+
+                    this.SendJsonResponse(200, result);
+                }
+                catch (Exception ex)
+                {
+                    PluginLog.Error(ex, "Request handler error");
+                    this.SendJsonResponse(500, new { success = false, error = ex.Message });
+                }
+            });
+        }
+
+        private void SendCorsPreflightResponse()
+        {
+            var response = new HttpResponse();
+            response.SetBegin(200);
+            response.SetHeader("Access-Control-Allow-Origin", "*");
+            response.SetHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            response.SetHeader("Access-Control-Allow-Headers", "Content-Type");
+            response.SetHeader("Access-Control-Allow-Private-Network", "true");
+            response.SetHeader("Access-Control-Max-Age", "86400");
+            response.SetBody();
+            this.SendResponseAsync(response);
+        }
+
+        private void SendJsonResponse(Int32 statusCode, Object data)
+        {
+            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+            var body = Encoding.UTF8.GetBytes(json);
+
+            var response = new HttpResponse();
+            response.SetBegin(statusCode);
+            response.SetHeader("Content-Type", "application/json; charset=utf-8");
+            response.SetHeader("Access-Control-Allow-Origin", "*");
+            response.SetHeader("Access-Control-Allow-Private-Network", "true");
+            response.SetBody(body);
+            this.SendResponseAsync(response);
+        }
+
+        protected override void OnError(SocketError error)
+        {
+            if (error != SocketError.ConnectionReset)
+            {
+                PluginLog.Warning($"WSS session error: {error}");
+            }
         }
     }
 }

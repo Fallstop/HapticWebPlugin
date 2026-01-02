@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Slider from "$lib/components/ui/slider";
-  import { triggerWaveform } from "$lib/haptics";
+  import { triggerHapticWs } from "$lib/haptics.svelte";
 
   let value = $state(50);
   let lastTickValue = $state(50);
@@ -11,7 +11,7 @@
     const lastTick = Math.floor(lastTickValue / tickInterval) * tickInterval;
 
     if (currentTick !== lastTick) {
-      triggerWaveform("sharp_collision");
+      triggerHapticWs("sharp_collision");
     }
 
     lastTickValue = newValue;

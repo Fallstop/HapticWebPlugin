@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NetCoreServer" Version="8.0.7" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
   </ItemGroup>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { triggerWaveform } from "$lib/haptics";
+  import { triggerHapticWs } from "$lib/haptics.svelte";
   import MousePointer from "@lucide/svelte/icons/mouse-pointer";
   import Sparkles from "@lucide/svelte/icons/sparkles";
 
@@ -9,12 +9,12 @@
 
   function handleMouseEnter() {
     isHovered = true;
-    triggerWaveform(WAVEFORM_ID);
+    triggerHapticWs(WAVEFORM_ID);
   }
 
   function handleMouseLeave() {
     isHovered = false;
-    triggerWaveform(WAVEFORM_ID);
+    triggerHapticWs(WAVEFORM_ID);
   }
 </script>
 

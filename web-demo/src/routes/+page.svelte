@@ -1,13 +1,15 @@
 <script lang="ts">
-  import StatusBanner from "$lib/components/StatusBanner.svelte";
-  import WaveformSelector from "$lib/components/WaveformSelector.svelte";
+  import ApiReference from "$lib/components/ApiReference.svelte";
   import AnimatedDemo from "$lib/components/demos/AnimatedDemo.svelte";
   import CTAButton from "$lib/components/demos/CTAButton.svelte";
   import HapticSlider from "$lib/components/demos/HapticSlider.svelte";
   import HoverZone from "$lib/components/demos/HoverZone.svelte";
+  import StatusBanner from "$lib/components/StatusBanner.svelte";
   import { Badge } from "$lib/components/ui/badge";
   import { Separator } from "$lib/components/ui/separator";
   import * as Tabs from "$lib/components/ui/tabs";
+  import WaveformSelector from "$lib/components/WaveformSelector.svelte";
+  import { API_PORT } from "$lib/config";
   import MousePointer2 from "@lucide/svelte/icons/mouse-pointer-2";
   import Vibrate from "@lucide/svelte/icons/vibrate";
   import Zap from "@lucide/svelte/icons/zap";
@@ -47,7 +49,7 @@
           class="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
           <div class="flex items-center gap-2">
             <Zap class="w-4 h-4 text-primary" />
-            <span>Local HTTPS API on port 41443</span>
+            <span>Local HTTPS API on port {API_PORT}</span>
           </div>
           <Separator orientation="vertical" class="h-4" />
           <div class="flex items-center gap-2">
@@ -137,30 +139,7 @@
     <!-- API Reference Section -->
     <section class="space-y-4">
       <h2 class="text-2xl font-semibold">API Reference</h2>
-      <div class="grid sm:grid-cols-3 gap-4">
-        <div class="p-4 rounded-lg bg-muted/30 border border-border">
-          <code class="text-sm text-primary">GET /</code>
-          <p class="text-sm text-muted-foreground mt-2">
-            Health check with service info
-          </p>
-        </div>
-        <div class="p-4 rounded-lg bg-muted/30 border border-border">
-          <code class="text-sm text-primary">GET /waveforms</code>
-          <p class="text-sm text-muted-foreground mt-2">
-            List all 16 available waveforms
-          </p>
-        </div>
-        <div class="p-4 rounded-lg bg-muted/30 border border-border">
-          <code class="text-sm text-primary">POST /haptic/{"{waveform}"}</code>
-          <p class="text-sm text-muted-foreground mt-2">
-            Trigger a specific waveform
-          </p>
-        </div>
-      </div>
-      <p class="text-sm text-muted-foreground">
-        All endpoints are available at <code class="text-primary"
-          >https://local.jmw.nz:41443</code>
-      </p>
+      <ApiReference />
     </section>
   </main>
 

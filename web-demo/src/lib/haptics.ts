@@ -1,4 +1,6 @@
-const API_BASE = 'https://local.jmw.nz:41443';
+import { API_BASE_URL } from './config';
+
+const API_BASE = API_BASE_URL;
 
 import waveformsData from '$lib/data/waveforms.json';
 
