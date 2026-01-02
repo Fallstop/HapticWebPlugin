@@ -37,8 +37,6 @@ export const CATEGORY_INFO: Record<string, { color: string; description: string 
 export interface HapticResponse {
     success: boolean;
     waveform: string;
-    deviceStatus: string;
-    note: string;
 }
 
 export async function triggerWaveform(waveformApiName: string): Promise<HapticResponse | null> {

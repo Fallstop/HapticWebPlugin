@@ -148,8 +148,6 @@ namespace Loupedeck.HapticWebPlugin
                 success = true,
                 service = "HapticWebPlugin",
                 version = "1.0.0",
-                deviceStatus = "unknown",
-                deviceNote = "MX Master 4 connection cannot be detected directly. Haptics will be sent if device is connected.",
                 endpoints = new
                 {
                     health = "GET /",
@@ -170,7 +168,6 @@ namespace Loupedeck.HapticWebPlugin
             return new
             {
                 success = true,
-                deviceStatus = "unknown",
                 count = HapticWaveforms.Count,
                 waveforms = waveformList
             };
@@ -201,9 +198,7 @@ namespace Loupedeck.HapticWebPlugin
                 return new
                 {
                     success = true,
-                    waveform = waveform,
-                    deviceStatus = "unknown",
-                    note = "Haptic event raised. Will trigger if MX Master 4 is connected."
+                    waveform = waveform
                 };
             }
             catch (Exception ex)

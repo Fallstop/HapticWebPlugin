@@ -61,15 +61,9 @@ curl -X POST http://127.0.0.1:8765/haptic/completed
 ```json
 {
   "success": true,
-  "waveform": "sharp_collision",
-  "deviceStatus": "unknown",
-  "note": "Haptic event raised. Will trigger if MX Master 4 is connected."
+  "waveform": "sharp_collision"
 }
 ```
-
-## Device Status
-
-The API reports `"deviceStatus": "unknown"` because the Logi Actions SDK does not provide a way to detect if the MX Master 4 is connected. Haptic events are sent regardless—they will trigger if the device is connected and be silently ignored otherwise.
 
 ## Building
 
