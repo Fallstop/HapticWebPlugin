@@ -43,6 +43,3 @@ haptics:
 
   ringing:
     DEFAULT: ringing
-
-  heartbeat:
-    DEFAULT: heartbeat

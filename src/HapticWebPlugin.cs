@@ -19,24 +19,23 @@ namespace Loupedeck.HapticWebPlugin
         private CertificateManager _certificateManager;
         private HttpsServer _httpsServer;
 
-        private static readonly Dictionary<String, String> HapticWaveforms = new Dictionary<String, String>
+        private static readonly List<String> HapticWaveforms = new List<String>
         {
-            { "sharp_state_change", "Short, high-intensity pulse for discrete state transitions" },
-            { "damp_state_change", "Gradual intensity change for smooth state transitions" },
-            { "sharp_collision", "High-intensity impact simulation for collision events" },
-            { "damp_collision", "Medium-intensity impact with gradual decay" },
-            { "subtle_collision", "Low-intensity feedback for light contact events" },
-            { "happy_alert", "Positive feedback pattern for success states" },
-            { "angry_alert", "Attention-grabbing pattern for error conditions" },
-            { "completed", "Confirmation pattern for task completion" },
-            { "square", "Sharp-edged waveform with defined start/stop points" },
-            { "wave", "Smooth sinusoidal pattern with gradual transitions" },
-            { "firework", "Multi-burst pattern with varying intensities" },
-            { "mad", "High-frequency chaotic pattern" },
-            { "knock", "Repetitive impact pattern" },
-            { "jingle", "Musical-style pattern with multiple tones" },
-            { "ringing", "Continuous oscillating pattern" },
-            { "heartbeat", "Rhythmic double-pulse pattern" }
+            "sharp_collision",
+            "sharp_state_change",
+            "knock",
+            "damp_collision",
+            "mad",
+            "ringing",
+            "subtle_collision",
+            "completed",
+            "jingle",
+            "damp_state_change",
+            "firework",
+            "happy_alert",
+            "wave",
+            "angry_alert",
+            "square"
         };
 
         public override Boolean UsesApplicationApiOnly => true;
@@ -159,17 +158,11 @@ namespace Loupedeck.HapticWebPlugin
 
         private Object HandleListWaveforms()
         {
-            var waveformList = new List<Object>();
-            foreach (var waveform in HapticWaveforms)
-            {
-                waveformList.Add(new { name = waveform.Key, description = waveform.Value });
-            }
-
             return new
             {
                 success = true,
                 count = HapticWaveforms.Count,
-                waveforms = waveformList
+                waveforms = HapticWaveforms
             };
         }
 
@@ -180,13 +173,13 @@ namespace Loupedeck.HapticWebPlugin
                 return new { success = false, error = "Waveform name is required" };
             }
 
-            if (!HapticWaveforms.ContainsKey(waveform))
+            if (!HapticWaveforms.Contains(waveform))
             {
                 return new
                 {
                     success = false,
                     error = $"Unknown waveform: {waveform}",
-                    availableWaveforms = new List<String>(HapticWaveforms.Keys)
+                    availableWaveforms = HapticWaveforms
                 };
             }
 
@@ -212,7 +205,7 @@ namespace Loupedeck.HapticWebPlugin
         {
             foreach (var waveform in HapticWaveforms)
             {
-                this.PluginEvents.AddEvent(waveform.Key, waveform.Key, waveform.Value);
+                this.PluginEvents.AddEvent(waveform, waveform, null);
             }
             PluginLog.Info($"Registered {HapticWaveforms.Count} haptic events");
         }

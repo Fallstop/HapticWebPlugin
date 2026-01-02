@@ -22,24 +22,23 @@ The plugin runs an HTTP server on `http://127.0.0.1:8765/` when loaded.
 
 ### Available Waveforms
 
-| Waveform | Description |
-|----------|-------------|
-| `sharp_state_change` | Short, high-intensity pulse for discrete state transitions |
-| `damp_state_change` | Gradual intensity change for smooth state transitions |
-| `sharp_collision` | High-intensity impact simulation for collision events |
-| `damp_collision` | Medium-intensity impact with gradual decay |
-| `subtle_collision` | Low-intensity feedback for light contact events |
-| `happy_alert` | Positive feedback pattern for success states |
-| `angry_alert` | Attention-grabbing pattern for error conditions |
-| `completed` | Confirmation pattern for task completion |
-| `square` | Sharp-edged waveform with defined start/stop points |
-| `wave` | Smooth sinusoidal pattern with gradual transitions |
-| `firework` | Multi-burst pattern with varying intensities |
-| `mad` | High-frequency chaotic pattern |
-| `knock` | Repetitive impact pattern |
-| `jingle` | Musical-style pattern with multiple tones |
-| `ringing` | Continuous oscillating pattern |
-| `heartbeat` | Rhythmic double-pulse pattern |
+| Waveform | Category |
+|----------|----------|
+| `sharp_collision` | Precision enhancers |
+| `sharp_state_change` | Progress indicators |
+| `knock` | Incoming events |
+| `damp_collision` | Precision enhancers |
+| `mad` | Progress indicators |
+| `ringing` | Incoming events |
+| `subtle_collision` | Precision enhancers |
+| `completed` | Progress indicators |
+| `jingle` | Incoming events |
+| `damp_state_change` | Precision enhancers |
+| `firework` | Progress indicators |
+| `happy_alert` | Progress indicators |
+| `wave` | Progress indicators |
+| `angry_alert` | Progress indicators |
+| `square` | Progress indicators |
 
 ## Example Usage
 
