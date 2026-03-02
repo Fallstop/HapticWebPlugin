@@ -15,10 +15,25 @@
   import Download from "@lucide/svelte/icons/download";
   import Vibrate from "@lucide/svelte/icons/vibrate";
   import Zap from "@lucide/svelte/icons/zap";
+  import { onMount } from "svelte";
+  import { fade } from "svelte/transition";
 
   const connected = $derived(isConnected());
   const hasInitiated = $derived(hasInitiatedConnection());
   const connectionState = $derived(getConnectionState());
+
+  let installCount: number | null = $state(null);
+
+  onMount(async () => {
+    try {
+      const res = await fetch("/_api/downloads");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.downloads != null) installCount = data.downloads;
+    } catch {
+      /* ignore */
+    }
+  });
 
   function handleConnect() {
     connect();
@@ -45,6 +60,19 @@
         <div class="flex items-center gap-3">
           <Badge variant="outline">Logi Actions SDK</Badge>
           <Badge variant="outline">Open Source</Badge>
+          <Badge variant="outline" class={installCount == null ? 'invisible' : ''}>
+            {#if installCount != null}
+              <span in:fade={{ duration: 300 }} class="inline-flex items-center gap-1">
+                <Download class="w-3 h-3" />
+                {installCount.toLocaleString()} installs
+              </span>
+            {:else}
+              <span class="inline-flex items-center gap-1 invisible">
+                <Download class="w-3 h-3" />
+                0,000 installs
+              </span>
+            {/if}
+          </Badge>
         </div>
 
         <h1 class="text-4xl sm:text-5xl font-bold tracking-tight">
@@ -120,8 +148,8 @@
       </div>
       <h3 class="text-xl font-semibold">1. Install</h3>
       <p class="text-muted-foreground text-sm">
-        Download the plugin and install it through Logi Options+. Takes less
-        than a minute.
+        Install from the Logitech Marketplace in Logi Options+, or download
+        manually from GitHub. Takes less than a minute.
       </p>
       <a
         href="/install"

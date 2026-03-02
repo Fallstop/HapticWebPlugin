@@ -129,26 +129,19 @@ ws.onerror = (err) => console.error('WebSocket error:', err);
 - Warns 14 days before expiry
 - Falls back to cache if GitHub is unreachable
 
-## Manual Installation
+## Installation
+
+Install from the [Logitech Marketplace](https://marketplace.logi.com/plugin/HapticWeb/en) directly within Logi Options+. You can find plugins in the Haptic Feedback area of your MX Master 4 settings.
+
+### Manual Installation
 
 1. Open Logitech Options+ and click on your MX Master 4.
 2. In the left sidebar, open the `HAPTIC FEEDBACK` tab and click on the haptic feedback settings popover.
-3. In the new right sidebar, click the `INSTALL AND UNINSTALL PLUGINS` button. Now you're in the plugin management window.
+3. In the new right sidebar, click the `INSTALL AND UNINSTALL PLUGINS` button.
 4. Download the `HapticWeb.lplug4` release asset from [GitHub Releases](https://github.com/fallstop/HapticWebPlugin/releases) and double-click it.
 5. This will trigger an installation dialog in Logitech Options+. Press continue.
 6. The server starts automatically at `https://local.jmw.nz:41443/`
 7. Test at [https://haptics.jmw.nz](https://haptics.jmw.nz)
-
-### Uninstalling
-A manually installed plugin doesn't show in the plugin list, so to uninstall, simply delete the plugin folder:
-
-```bash
-# Windows
-C:\Users\USERNAME\AppData\Local\Logi\LogiPluginService\Plugins\HapticWebPlugin\
-
-# macOS
-~/Library/Application Support/Logi/LogiPluginService/Plugins/HapticWebPlugin/
-```
 
 ## Development
 
