@@ -112,6 +112,11 @@ namespace Loupedeck.HapticWebPlugin.Helpers
     /// request or WebSocket message size limit of its own and buffers a whole frame
     /// (whatever length the client declares) before handing it to us.
     /// Every haptic command is a single byte, so the limits are tiny.
+    ///
+    /// In WebSocket mode it also holds back a frame header that is split across reads
+    /// and forwards it whole with the next read: NetCoreServer 8.0.7 restarts its header
+    /// loops from zero on a split header and would misparse the stream, which would also
+    /// put it out of step with this guard.
     /// </summary>
     internal sealed class ReceiveGuard
     {
@@ -137,8 +142,12 @@ namespace Loupedeck.HapticWebPlugin.Helpers
 
         public void HttpRequestCompleted() => this._httpBytes = 0;
 
+        /// <summary>
+        /// Checks received bytes and rewrites the range to forward to NetCoreServer
+        /// (which may be empty, or include header bytes held back from the previous read).
+        /// </summary>
         /// <returns>false if the connection should be dropped.</returns>
-        public Boolean Accept(Byte[] buffer, Int64 offset, Int64 size)
+        public Boolean Filter(ref Byte[] buffer, ref Int64 offset, ref Int64 size)
         {
             if (!this.IsWebSocket)
             {
@@ -146,8 +155,20 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                 return this._httpBytes <= MaxHttpRequestBytes;
             }
 
+            if (this._headerLength > 0)
+            {
+                var combined = new Byte[this._headerLength + size];
+                Array.Copy(this._header, combined, this._headerLength);
+                Array.Copy(buffer, offset, combined, this._headerLength, size);
+                buffer = combined;
+                offset = 0;
+                size = combined.Length;
+                this._headerLength = 0;
+            }
+
             var end = offset + size;
             var i = offset;
+            var frameStart = offset;
             while (i < end)
             {
                 if (this._payloadRemaining > 0)
@@ -156,6 +177,11 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                     i += skip;
                     this._payloadRemaining -= skip;
                     continue;
+                }
+
+                if (this._headerLength == 0)
+                {
+                    frameStart = i;
                 }
 
                 this._header[this._headerLength++] = buffer[i++];
@@ -176,27 +202,27 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                     continue;
                 }
 
-                var opcode = this._header[0] & 0x0F;
-                var fin = (this._header[0] & 0x80) != 0;
-
-                // Data and continuation frames build up one message; control frames
-                // (opcode >= 8) can interleave and are capped at 125 bytes by the RFC.
-                if (opcode < 0x8)
+                // NetCoreServer appends every frame's payload (control frames included)
+                // to one message buffer until a frame with FIN set, so count them all.
+                this._messageLength += payloadLength;
+                if (this._messageLength > MaxMessageBytes)
                 {
-                    this._messageLength += payloadLength;
-                    if (this._messageLength > MaxMessageBytes)
-                    {
-                        return false;
-                    }
+                    return false;
+                }
 
-                    if (fin)
-                    {
-                        this._messageLength = 0;
-                    }
+                if ((this._header[0] & 0x80) != 0)
+                {
+                    this._messageLength = 0;
                 }
 
                 this._payloadRemaining = payloadLength;
                 this._headerLength = 0;
+            }
+
+            if (this._headerLength > 0)
+            {
+                // Hold the partial header back; it is prepended to the next read.
+                size = frameStart - offset;
             }
 
             return true;

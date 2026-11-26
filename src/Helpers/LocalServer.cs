@@ -153,14 +153,17 @@ namespace Loupedeck.HapticWebPlugin.Helpers
 
         protected override void OnReceived(Byte[] buffer, Int64 offset, Int64 size)
         {
-            if (!this._guard.Accept(buffer, offset, size))
+            if (!this._guard.Filter(ref buffer, ref offset, ref size))
             {
                 PluginLog.Warning($"Dropping connection {this.Id}: request or message too large");
                 this.Disconnect();
                 return;
             }
 
-            base.OnReceived(buffer, offset, size);
+            if (size > 0)
+            {
+                base.OnReceived(buffer, offset, size);
+            }
         }
 
         public override Boolean OnWsConnecting(HttpRequest request, HttpResponse response) => HapticEndpoint.IsWebSocketPath(request);
@@ -179,8 +182,8 @@ namespace Loupedeck.HapticWebPlugin.Helpers
         {
             if (this._guard.IsWebSocket)
             {
-                // The upgrade request itself; the base class handles any frame bytes sent with it.
-                base.OnReceivedRequest(request);
+                // The upgrade request itself. The base class would feed any request body to the
+                // frame parser without passing through ReceiveGuard; browsers never send one.
                 return;
             }
 
@@ -210,14 +213,17 @@ namespace Loupedeck.HapticWebPlugin.Helpers
 
         protected override void OnReceived(Byte[] buffer, Int64 offset, Int64 size)
         {
-            if (!this._guard.Accept(buffer, offset, size))
+            if (!this._guard.Filter(ref buffer, ref offset, ref size))
             {
                 PluginLog.Warning($"Dropping connection {this.Id}: request or message too large");
                 this.Disconnect();
                 return;
             }
 
-            base.OnReceived(buffer, offset, size);
+            if (size > 0)
+            {
+                base.OnReceived(buffer, offset, size);
+            }
         }
 
         public override Boolean OnWsConnecting(HttpRequest request, HttpResponse response) => HapticEndpoint.IsWebSocketPath(request);
@@ -236,8 +242,8 @@ namespace Loupedeck.HapticWebPlugin.Helpers
         {
             if (this._guard.IsWebSocket)
             {
-                // The upgrade request itself; the base class handles any frame bytes sent with it.
-                base.OnReceivedRequest(request);
+                // The upgrade request itself. The base class would feed any request body to the
+                // frame parser without passing through ReceiveGuard; browsers never send one.
                 return;
             }
 

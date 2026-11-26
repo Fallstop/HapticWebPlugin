@@ -45,12 +45,12 @@ let resolvedApiBase: Promise<string | null> | null = null;
 async function findApiBase(): Promise<string | null> {
     for (const baseUrl of API_BASE_URLS) {
         try {
-            const response = await fetch(baseUrl + '/', { method: 'GET' });
+            const response = await fetch(baseUrl + '/', { method: 'GET', signal: AbortSignal.timeout(3000) });
             if (response.ok && (await response.json())?.service === 'HapticWebPlugin') {
                 return baseUrl;
             }
         } catch {
-            // Not reachable from this page (not running, or blocked as mixed content); try the next one
+            // Not reachable from this page (not running, blocked as mixed content, or timed out); try the next one
         }
     }
     return null;

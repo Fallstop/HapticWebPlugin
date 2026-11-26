@@ -189,7 +189,7 @@ If you see certificate errors:
 
 ### Port Already in Use
 If port 41080 (or 41443 for the HTTPS fallback) is in use:
-1. Stop other services using the port: `lsof -ti:41080 | xargs kill -9` (macOS/Linux)
+1. Stop other services using that port, e.g. `lsof -ti:41080 | xargs kill -9` (macOS/Linux; use 41443 for the fallback)
 2. Restart Logi Plugin Service
 
 ### WebSocket Connection Failed
