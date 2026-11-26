@@ -99,10 +99,16 @@ namespace Loupedeck.HapticWebPlugin
 
             var httpsProblem = this._certificateManager.Status switch
             {
-                CertificateStatus.Valid => this._server.HttpsError,
-                CertificateStatus.NotLoaded => this._server.HttpsError,
+                CertificateStatus.Valid or CertificateStatus.NotLoaded or CertificateStatus.ExpiringSoon => this._server.HttpsError,
                 _ => this._certificateManager.StatusMessage ?? this._server.HttpsError,
             };
+
+            if (httpsProblem == null && this._certificateManager.Status == CertificateStatus.ExpiringSoon)
+            {
+                // Still serving; just flag that renewal hasn't happened yet.
+                this.OnPluginStatusChanged(Loupedeck.PluginStatus.Warning, this._certificateManager.StatusMessage, null, null);
+                return;
+            }
 
             if (httpsProblem != null)
             {
