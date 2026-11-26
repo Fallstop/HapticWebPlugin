@@ -194,6 +194,7 @@ export class HapticsWebSocket {
     }
 
     private adopt(ws: WebSocket): void {
+        this.clearTimers(); // a retry scheduled by a socket closing meanwhile is no longer needed
         if (this.ws) {
             this.ws.onclose = null;
             this.ws.close();

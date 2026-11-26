@@ -28,7 +28,7 @@ Like phone vibration on the web, any website you visit can trigger haptics and d
 
 Safari still blocks plain `http://`/`ws://` requests to localhost from HTTPS pages, so the plugin also serves the same API on `https://local.jmw.nz:41443/`. `local.jmw.nz` resolves to `127.0.0.1`, and the certificate is downloaded from GitHub and cached locally; the plugin checks for a new one when it starts (at most once a day).
 
-This fallback will be removed once Safari allows loopback requests, or by November 2027 at the latest. Try `http://127.0.0.1:41080` first and fall back to it only when that fails (see `web-demo/src/lib/haptics-ws.ts`).
+This fallback will be removed once Safari allows loopback requests, or by November 2027 at the latest. Try `http://127.0.0.1:41080` first and use `https://local.jmw.nz:41443` only when that fails (see `web-demo/src/lib/haptics-ws.ts`).
 
 ### REST API Endpoints
 
