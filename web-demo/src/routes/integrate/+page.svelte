@@ -28,8 +28,7 @@
     }
   }
 
-  const wsExample = `// Safari: use 'wss://local.jmw.nz:41443/ws' instead (deprecated fallback)
-const ws = new WebSocket('ws://127.0.0.1:41080/ws');
+  const wsExample = `const ws = new WebSocket('ws://127.0.0.1:41080/ws');
 
 ws.onopen = () => {
   console.log('Connected to HapticWeb');
@@ -145,8 +144,6 @@ const waveforms = await fetch('http://127.0.0.1:41080/waveforms')
             Connect to <code
               class="px-1 py-0.5 rounded bg-muted text-foreground"
               >ws://127.0.0.1:41080/ws</code>
-            (Safari: <code class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >wss://local.jmw.nz:41443/ws</code>, deprecated)
           </li>
           <li>Send a single byte containing the waveform index (0-15)</li>
           <li>

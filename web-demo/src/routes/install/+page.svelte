@@ -199,30 +199,6 @@
 
   <Separator class="mb-12" />
 
-  <!-- About local.jmw.nz -->
-  <section class="mb-12">
-    <h2 class="text-2xl font-semibold mb-6">HTTPS fallback (Safari)</h2>
-    <div class="p-4 rounded-lg border border-border bg-card space-y-3">
-      <p class="text-sm text-muted-foreground">
-        <code class="px-1.5 py-0.5 rounded bg-muted text-foreground"
-          >local.jmw.nz</code>
-        resolves to
-        <code class="px-1.5 py-0.5 rounded bg-muted text-foreground"
-          >127.0.0.1</code> (localhost).
-      </p>
-      <p class="text-sm text-muted-foreground">
-        The plugin serves a deprecated HTTPS fallback on
-        <code class="px-1.5 py-0.5 rounded bg-muted text-foreground">https://local.jmw.nz:41443/</code>
-        for Safari, which still blocks plain <code class="px-1.5 py-0.5 rounded bg-muted text-foreground">ws://</code>
-        connections to localhost from HTTPS pages. Its certificate is downloaded from GitHub and cached
-        locally; the plugin checks for a new one when it starts (at most once a day). The fallback will be
-        removed once Safari allows loopback connections, or by November 2027 at the latest.
-      </p>
-    </div>
-  </section>
-
-  <Separator class="mb-12" />
-
   <!-- Troubleshooting -->
   <section>
     <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
@@ -232,25 +208,9 @@
 
     <div class="space-y-6">
       <div class="space-y-2">
-        <h3 class="font-medium">Certificate errors (Safari / HTTPS fallback only)</h3>
-        <ul
-          class="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-          <li>
-            Check plugin status in Logi Options+ (should show green "Normal")
-          </li>
-          <li>
-            Verify internet connection (initial certificate download requires
-            network)
-          </li>
-          <li>Restart Logi Plugin Service</li>
-          <li>Report an issue with plugin logs if the problem persists</li>
-        </ul>
-      </div>
-
-      <div class="space-y-2">
         <h3 class="font-medium">Port already in use</h3>
         <p class="text-sm text-muted-foreground">
-          If port 41080 (or 41443 for the HTTPS fallback) is in use, stop other services using the port:
+          If port 41080 is in use, stop other services using the port:
         </p>
         <div class="p-3 rounded-lg bg-muted font-mono text-sm">
           lsof -ti:41080 | xargs kill -9
@@ -273,16 +233,6 @@
           <li>
             Chrome asks before a site can reach local services; allow the
             local network access prompt
-          </li>
-          <li>
-            Safari: use the HTTPS fallback <code
-              class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >wss://local.jmw.nz:41443/ws</code>, and verify
-            <code class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >local.jmw.nz</code>
-            resolves to
-            <code class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >127.0.0.1</code>
           </li>
         </ul>
       </div>

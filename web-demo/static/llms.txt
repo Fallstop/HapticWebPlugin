@@ -27,8 +27,6 @@ HapticWeb enables web applications to trigger haptic feedback on Logitech MX Mas
 
 The plugin runs an HTTP server on `http://127.0.0.1:41080/` when loaded. Browsers treat loopback as a secure context, so HTTPS pages can call it directly.
 
-Safari still blocks `http://`/`ws://` to localhost from HTTPS pages, so the same API is also served on `https://local.jmw.nz:41443/` as a deprecated fallback. It will be removed once Safari allows loopback requests, or by November 2027 at the latest. Try `127.0.0.1:41080` first and fall back only when that fails.
-
 ### REST Endpoints
 
 | Endpoint | Method | Description |
@@ -39,7 +37,7 @@ Safari still blocks `http://`/`ws://` to localhost from HTTPS pages, so the same
 
 ### WebSocket Endpoint
 
-`ws://127.0.0.1:41080/ws` (Safari fallback: `wss://local.jmw.nz:41443/ws`)
+`ws://127.0.0.1:41080/ws`
 
 Send a single byte containing the waveform index (0-14) to trigger haptic feedback.
 
@@ -85,8 +83,8 @@ ws.onopen = () => {
 
 ## Technical Details
 
-- **Server:** NetCoreServer-based HTTP/WS, plus HTTPS/WSS fallback
-- **Ports:** 41080 (HTTP), 41443 (HTTPS fallback for Safari, deprecated)
+- **Server:** NetCoreServer-based HTTP/WS
+- **Port:** 41080
 - **CORS:** Enabled for any origin (any website can trigger haptics; Chrome asks the user first)
 - **Binding:** 127.0.0.1 only
 

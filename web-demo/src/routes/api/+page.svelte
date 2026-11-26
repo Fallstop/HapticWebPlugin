@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge";
   import { Separator } from "$lib/components/ui/separator";
-  import { API_BASE_URL, API_HOST, API_PORT, FALLBACK_API_BASE_URL } from "$lib/config";
+  import { API_BASE_URL, API_HOST, API_PORT, FALLBACK_API_BASE_URL, FALLBACK_API_HOST, FALLBACK_API_PORT } from "$lib/config";
   import { WAVEFORMS } from "$lib/haptics";
   import Check from "@lucide/svelte/icons/check";
   import Copy from "@lucide/svelte/icons/copy";
@@ -44,13 +44,7 @@
         class="px-1 py-0.5 rounded bg-muted text-foreground">127.0.0.1</code> only. Browsers treat loopback as a
       secure context, so HTTPS pages can call it directly.
     </p>
-    <p class="text-sm text-muted-foreground mt-2">
-      Safari still blocks plain <code class="px-1 py-0.5 rounded bg-muted text-foreground">http://</code>/<code
-        class="px-1 py-0.5 rounded bg-muted text-foreground">ws://</code> requests to localhost from HTTPS pages.
-      For Safari, fall back to the deprecated HTTPS endpoint <code
-        class="px-1 py-0.5 rounded bg-muted text-foreground">{FALLBACK_API_BASE_URL}</code>, which will be removed once
-      Safari allows loopback requests, or by November 2027 at the latest.
-    </p>
+
   </section>
 
   <Separator class="mb-12" />
@@ -283,5 +277,21 @@ ws.onopen = () => {
         </tbody>
       </table>
     </div>
+  </section>
+
+  <Separator class="my-12" />
+
+  <!-- Deprecated -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Deprecated: HTTPS endpoint</h2>
+    <p class="text-sm text-muted-foreground">
+      The same API is also served on <code
+        class="px-1 py-0.5 rounded bg-muted text-foreground">{FALLBACK_API_BASE_URL}</code>
+      (WebSocket: <code class="px-1 py-0.5 rounded bg-muted text-foreground"
+        >wss://{FALLBACK_API_HOST}:{FALLBACK_API_PORT}/ws</code>) for Safari, which still blocks plain
+      <code class="px-1 py-0.5 rounded bg-muted text-foreground">ws://</code> requests to localhost from HTTPS pages.
+      Use it only when the endpoint above fails. It will be removed once Safari allows loopback requests,
+      or by November 2027 at the latest.
+    </p>
   </section>
 </div>
