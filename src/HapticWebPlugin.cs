@@ -17,7 +17,7 @@ namespace Loupedeck.HapticWebPlugin
         private const Int32 HttpsPort = 41443;
 
         private CertificateManager _certificateManager;
-        private HttpsServer _httpsServer;
+        private LocalServer _server;
 
         private static readonly List<String> HapticWaveforms = new List<String>
         {
@@ -55,7 +55,7 @@ namespace Loupedeck.HapticWebPlugin
 
         public override void Unload()
         {
-            this._httpsServer?.Dispose();
+            this._server?.Dispose();
             this._certificateManager?.Dispose();
         }
 
@@ -63,27 +63,23 @@ namespace Loupedeck.HapticWebPlugin
         {
             try
             {
+                this._server = new LocalServer(new HapticEndpoint(this.HandleHttpRequest, this.RunHapticByIndex, HapticWaveforms));
+
+                // Plain HTTP/WS on loopback needs no certificate, so start it before the download.
+                this._server.StartHttp(HttpPort);
+
+                // HTTPS is a deprecated fallback for Safari; failures here are warnings only.
                 var pluginDataDir = this.GetPluginDataDirectory();
                 var certCacheDir = Path.Combine(pluginDataDir, "certificates");
 
                 this._certificateManager = new CertificateManager(certCacheDir);
                 await this._certificateManager.InitializeAsync();
 
-                this.UpdatePluginStatus();
+                this._server.StartHttps(HttpsPort, this._certificateManager.Certificate);
 
-                this._httpsServer = new HttpsServer(
-                    HttpPort,
-                    HttpsPort,
-                    this._certificateManager.Certificate,
-                    this.HandleHttpRequest,
-                    this.RunHapticByIndex,
-                    HapticWaveforms);
-
-                this._httpsServer.Start();
-
-                if (!String.IsNullOrEmpty(this._httpsServer.BindError))
+                if (!this._server.IsDisposed)
                 {
-                    this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, this._httpsServer.BindError);
+                    this.UpdatePluginStatus();
                 }
             }
             catch (Exception ex)
@@ -95,35 +91,36 @@ namespace Loupedeck.HapticWebPlugin
 
         private void UpdatePluginStatus()
         {
-            switch (this._certificateManager.Status)
+            if (this._server.HttpError != null)
             {
-                case CertificateStatus.Error:
-                    this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, this._certificateManager.StatusMessage);
-                    break;
-
-                case CertificateStatus.Expired:
-                    this.OnPluginStatusChanged(
-                        Loupedeck.PluginStatus.Warning,
-                        this._certificateManager.StatusMessage,
-                        "https://github.com/fallstop/HapticWebPlugin/issues",
-                        "Report Issue");
-                    break;
-
-                case CertificateStatus.ExpiringSoon:
-                    this.OnPluginStatusChanged(
-                        Loupedeck.PluginStatus.Warning,
-                        this._certificateManager.StatusMessage,
-                        null,
-                        null);
-                    break;
-
-                case CertificateStatus.Valid:
-                    this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, null);
-                    break;
-
-                default:
-                    break;
+                this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, this._server.HttpError);
+                return;
             }
+
+            var httpsProblem = this._certificateManager.Status switch
+            {
+                CertificateStatus.Valid or CertificateStatus.NotLoaded or CertificateStatus.ExpiringSoon => this._server.HttpsError,
+                _ => this._certificateManager.StatusMessage ?? this._server.HttpsError,
+            };
+
+            if (httpsProblem == null && this._certificateManager.Status == CertificateStatus.ExpiringSoon)
+            {
+                // Still serving; just flag that renewal hasn't happened yet.
+                this.OnPluginStatusChanged(Loupedeck.PluginStatus.Warning, this._certificateManager.StatusMessage, null, null);
+                return;
+            }
+
+            if (httpsProblem != null)
+            {
+                this.OnPluginStatusChanged(
+                    Loupedeck.PluginStatus.Warning,
+                    $"HTTPS fallback (used by Safari) is unavailable: {httpsProblem}",
+                    "https://github.com/fallstop/HapticWebPlugin/issues",
+                    "Report Issue");
+                return;
+            }
+
+            this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, null);
         }
 
         private Task<Object> HandleHttpRequest(String method, String path)
@@ -152,14 +149,7 @@ namespace Loupedeck.HapticWebPlugin
             return new
             {
                 success = true,
-                service = "HapticWebPlugin",
-                version = "1.0.0",
-                endpoints = new
-                {
-                    health = "GET /",
-                    listWaveforms = "GET /waveforms",
-                    triggerHaptic = "POST /haptic/{waveform}"
-                }
+                service = "HapticWebPlugin"
             };
         }
 

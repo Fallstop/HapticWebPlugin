@@ -8,7 +8,7 @@
 
 
 
-A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTPS server and WebSocket API.
+A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTP server and WebSocket API.
 
 ## Requirements
 
@@ -18,23 +18,29 @@ A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local H
 
 ## API Server
 
-The plugin runs an HTTPS server on `https://local.jmw.nz:41443/` when loaded.
+The plugin runs an HTTP server on `http://127.0.0.1:41080/` when loaded. Chrome and Firefox treat loopback as a secure context, so HTTPS pages can call it directly (Safari: see the HTTPS fallback below).
 
-### About local.jmw.nz
+### Which websites can use it
 
-`local.jmw.nz` resolves to `127.0.0.1`. The plugin uses this domain to serve HTTPS with a valid SSL certificate instead of self-signed certs that browsers reject. The certificate is automatically downloaded from GitHub, cached locally, and refreshed every 24 hours.
+Like phone vibration on the web, any website you visit can trigger haptics and detect that the plugin is running. Chrome asks for your permission before a site can connect to local services. The server only accepts connections from this computer.
+
+### HTTPS fallback for Safari (deprecated)
+
+Safari still blocks plain `http://`/`ws://` requests to localhost from HTTPS pages, so the plugin also serves the same API on `https://local.jmw.nz:41443/`. `local.jmw.nz` resolves to `127.0.0.1`, and the certificate is downloaded from GitHub and cached locally; the plugin checks for a new one when it starts (at most once a day).
+
+This fallback will be removed once Safari allows loopback requests, or by November 2027 at the latest. Try `http://127.0.0.1:41080` first and use `https://local.jmw.nz:41443` only when that fails (see `web-demo/src/lib/haptics-ws.ts`).
 
 ### REST API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Health check with service info and available endpoints |
+| `/` | GET | Health check (`{"success": true, "service": "HapticWebPlugin"}`) |
 | `/waveforms` | GET | List all 15 available haptic waveforms |
 | `/haptic/{waveform}` | POST | Trigger a specific haptic waveform |
 
 ### WebSocket API
 
-**Endpoint:** `wss://local.jmw.nz:41443/ws`
+**Endpoint:** `ws://127.0.0.1:41080/ws` (Safari: `wss://local.jmw.nz:41443/ws`)
 
 Keeps a warm connection for theoritically lower latency.
 
@@ -42,6 +48,7 @@ Keeps a warm connection for theoritically lower latency.
 - Send a single byte containing the waveform index (0-14)
 - No response is sent back
 - Connection stays open for repeated triggers
+- Messages larger than 1 KB (or frames over 125 bytes) close the connection
 
 ### Available Waveforms
 
@@ -71,15 +78,15 @@ The plugin supports 15 haptic waveforms across different categories:
 
 ```bash
 # Health check
-curl https://local.jmw.nz:41443/
+curl http://127.0.0.1:41080/
 
 # List all available waveforms
-curl https://local.jmw.nz:41443/waveforms
+curl http://127.0.0.1:41080/waveforms
 
 # Trigger haptic feedback (note: -d '' is required to send Content-Length header)
-curl -X POST -d '' https://local.jmw.nz:41443/haptic/sharp_collision
-curl -X POST -d '' https://local.jmw.nz:41443/haptic/happy_alert
-curl -X POST -d '' https://local.jmw.nz:41443/haptic/completed
+curl -X POST -d '' http://127.0.0.1:41080/haptic/sharp_collision
+curl -X POST -d '' http://127.0.0.1:41080/haptic/happy_alert
+curl -X POST -d '' http://127.0.0.1:41080/haptic/completed
 # {
 #   "success": true,
 #   "waveform": "completed"
@@ -92,8 +99,8 @@ curl -X POST -d '' https://local.jmw.nz:41443/haptic/completed
 ### WebSocket API (JavaScript)
 
 ```javascript
-// Connect to WebSocket
-const ws = new WebSocket('wss://local.jmw.nz:41443/ws');
+// Connect to WebSocket (Safari: 'wss://local.jmw.nz:41443/ws', deprecated)
+const ws = new WebSocket('ws://127.0.0.1:41080/ws');
 
 ws.onopen = () => {
   console.log('Connected to HapticWeb');
@@ -116,16 +123,16 @@ ws.onerror = (err) => console.error('WebSocket error:', err);
 ## Technical Details
 
 ### Architecture
-- **Server:** NetCoreServer-based HTTPS/WSS
-- **Port:** 41443 (HTTPS only)
-- **Certificate:** Auto-managed from GitHub
+- **Server:** NetCoreServer-based HTTP/WS, plus HTTPS/WSS fallback
+- **Ports:** 41080 (HTTP), 41443 (HTTPS fallback for Safari, deprecated)
 - **CORS:** Enabled, any origin
 - **Binding:** `127.0.0.1` only
+- **Limits:** 16 KB per HTTP request, 1 KB per WebSocket message
 
-### Certificate Management
+### Certificate Management (HTTPS fallback only)
 - Downloads from the GitHub `certs` branch on first run
 - Cached locally in plugin data directory
-- Refreshes every 24 hours
+- Checks for a new certificate on startup, at most once every 24 hours
 - Warns 14 days before expiry
 - Falls back to cache if GitHub is unreachable
 
@@ -140,7 +147,7 @@ Install from the [Logitech Marketplace](https://marketplace.logi.com/plugin/Hapt
 3. In the new right sidebar, click the `INSTALL AND UNINSTALL PLUGINS` button.
 4. Download the `HapticWeb.lplug4` release asset from [GitHub Releases](https://github.com/fallstop/HapticWebPlugin/releases) and double-click it.
 5. This will trigger an installation dialog in Logitech Options+. Press continue.
-6. The server starts automatically at `https://local.jmw.nz:41443/`
+6. The server starts automatically at `http://127.0.0.1:41080/`
 7. Test at [https://haptics.jmw.nz](https://haptics.jmw.nz)
 
 ## Development
@@ -173,7 +180,7 @@ logiplugintool uninstall HapticWeb
 
 ## Troubleshooting
 
-### Certificate Issues
+### Certificate Issues (Safari / HTTPS fallback only)
 If you see certificate errors:
 1. Check plugin status in Logi Options+ (should show green "Normal")
 2. Verify internet connection (initial certificate download requires network)
@@ -181,16 +188,16 @@ If you see certificate errors:
 4. Report an issue with the plugin logs if the problem persists
 
 ### Port Already in Use
-If port 41443 is in use:
-1. Stop other services using the port: `lsof -ti:41443 | xargs kill -9` (macOS/Linux)
+If port 41080 (or 41443 for the HTTPS fallback) is in use:
+1. Stop other services using that port, e.g. `lsof -ti:41080 | xargs kill -9` (macOS/Linux; use 41443 for the fallback)
 2. Restart Logi Plugin Service
 
 ### WebSocket Connection Failed
 If WebSocket connections fail:
-1. Verify the server is running: `curl https://local.jmw.nz:41443/`
+1. Verify the server is running: `curl http://127.0.0.1:41080/`
 2. Check browser console for errors
-3. Ensure you're using `wss://` (not `ws://`)
-4. Verify `local.jmw.nz` resolves to `127.0.0.1`: `ping local.jmw.nz`
+3. In Chrome, allow the local network access prompt
+4. In Safari, use the HTTPS fallback `wss://local.jmw.nz:41443/ws` and verify it is running: `curl https://local.jmw.nz:41443/` (if that fails, check the plugin status in Logi Options+ and that `local.jmw.nz` resolves to `127.0.0.1`)
 
 ## MIT License
 

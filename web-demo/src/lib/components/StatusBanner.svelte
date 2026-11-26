@@ -77,10 +77,10 @@
           case "ssl_error":
             return {
               icon: ShieldAlert,
-              title: "SSL Certificate Error",
+              title: "Connection Error",
               description:
                 errorMessage ||
-                "Trust the local.jmw.nz certificate in your browser",
+                "Couldn't connect to the haptics service. Restart Logi Plugin Service and try again.",
               borderClass: "border-orange-500/30",
               bgClass: "bg-orange-500/10",
               titleClass: "text-orange-400",

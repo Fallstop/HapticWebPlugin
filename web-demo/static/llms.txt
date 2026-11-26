@@ -1,6 +1,6 @@
 # HapticWeb
 
-> A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTPS server and WebSocket API.
+> A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTP server and WebSocket API.
 
 HapticWeb enables web applications to trigger haptic feedback on Logitech MX Master 4 mice through a simple REST and WebSocket API running locally.
 
@@ -25,19 +25,19 @@ HapticWeb enables web applications to trigger haptic feedback on Logitech MX Mas
 
 ## API Overview
 
-The plugin runs an HTTPS server on `https://local.jmw.nz:41443/` when loaded.
+The plugin runs an HTTP server on `http://127.0.0.1:41080/` when loaded. Chrome and Firefox treat loopback as a secure context, so HTTPS pages can call it directly.
 
 ### REST Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Health check with service info and available endpoints |
+| `/` | GET | Health check (`{"success": true, "service": "HapticWebPlugin"}`) |
 | `/waveforms` | GET | List all 15 available haptic waveforms |
 | `/haptic/{waveform}` | POST | Trigger a specific haptic waveform |
 
 ### WebSocket Endpoint
 
-`wss://local.jmw.nz:41443/ws`
+`ws://127.0.0.1:41080/ws`
 
 Send a single byte containing the waveform index (0-14) to trigger haptic feedback.
 
@@ -67,13 +67,13 @@ Send a single byte containing the waveform index (0-14) to trigger haptic feedba
 
 ```bash
 # Trigger haptic feedback
-curl -X POST -d '' https://local.jmw.nz:41443/haptic/sharp_collision
+curl -X POST -d '' http://127.0.0.1:41080/haptic/sharp_collision
 ```
 
 ### WebSocket Example (JavaScript)
 
 ```javascript
-const ws = new WebSocket('wss://local.jmw.nz:41443/ws');
+const ws = new WebSocket('ws://127.0.0.1:41080/ws');
 
 ws.onopen = () => {
   // Trigger "completed" waveform (index 7)
@@ -83,10 +83,9 @@ ws.onopen = () => {
 
 ## Technical Details
 
-- **Server:** NetCoreServer-based HTTPS/WSS
-- **Port:** 41443 (HTTPS only)
-- **Certificate:** Auto-managed, uses local.jmw.nz domain
-- **CORS:** Enabled for any origin
+- **Server:** NetCoreServer-based HTTP/WS
+- **Port:** 41080
+- **CORS:** Enabled for any origin (any website can trigger haptics; Chrome asks the user first)
 - **Binding:** 127.0.0.1 only
 
 ## License

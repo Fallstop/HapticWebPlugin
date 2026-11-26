@@ -172,7 +172,7 @@
             <h3 class="font-medium text-sm">Done!</h3>
             <p class="text-sm text-muted-foreground mt-1">
               The server starts automatically at
-              <code class="px-1.5 py-0.5 rounded bg-muted text-foreground text-xs">https://local.jmw.nz:41443/</code>.
+              <code class="px-1.5 py-0.5 rounded bg-muted text-foreground text-xs">http://127.0.0.1:41080/</code>.
               Test it on the
               <a href="/playground" class="text-primary hover:underline">Playground</a>.
             </p>
@@ -184,22 +184,15 @@
 
   <Separator class="mb-12" />
 
-  <!-- About local.jmw.nz -->
+  <!-- Which websites can use it -->
   <section class="mb-12">
-    <h2 class="text-2xl font-semibold mb-6">About local.jmw.nz</h2>
+    <h2 class="text-2xl font-semibold mb-6">Which websites can use it</h2>
     <div class="p-4 rounded-lg border border-border bg-card space-y-3">
       <p class="text-sm text-muted-foreground">
-        <code class="px-1.5 py-0.5 rounded bg-muted text-foreground"
-          >local.jmw.nz</code>
-        resolves to
-        <code class="px-1.5 py-0.5 rounded bg-muted text-foreground"
-          >127.0.0.1</code> (localhost).
-      </p>
-      <p class="text-sm text-muted-foreground">
-        The plugin uses this domain to serve HTTPS with a valid SSL certificate
-        instead of self-signed certs that browsers reject. The certificate is
-        automatically downloaded from GitHub, cached locally, and refreshed
-        every 24 hours.
+        Like phone vibration on the web, any website you visit can trigger
+        haptics and detect that the plugin is running. Chrome asks for your
+        permission before a site can connect to local services. The server only
+        accepts connections from this computer.
       </p>
     </div>
   </section>
@@ -215,28 +208,12 @@
 
     <div class="space-y-6">
       <div class="space-y-2">
-        <h3 class="font-medium">Certificate errors</h3>
-        <ul
-          class="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-          <li>
-            Check plugin status in Logi Options+ (should show green "Normal")
-          </li>
-          <li>
-            Verify internet connection (initial certificate download requires
-            network)
-          </li>
-          <li>Restart Logi Plugin Service</li>
-          <li>Report an issue with plugin logs if the problem persists</li>
-        </ul>
-      </div>
-
-      <div class="space-y-2">
         <h3 class="font-medium">Port already in use</h3>
         <p class="text-sm text-muted-foreground">
-          If port 41443 is in use, stop other services using the port:
+          If port 41080 is in use, stop other services using the port:
         </p>
         <div class="p-3 rounded-lg bg-muted font-mono text-sm">
-          lsof -ti:41443 | xargs kill -9
+          lsof -ti:41080 | xargs kill -9
         </div>
         <p class="text-sm text-muted-foreground">
           Then restart Logi Plugin Service.
@@ -250,23 +227,12 @@
           <li>
             Verify the server is running: <code
               class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >curl https://local.jmw.nz:41443/</code>
+              >curl http://127.0.0.1:41080/</code>
           </li>
           <li>Check browser console for errors</li>
           <li>
-            Ensure you're using <code
-              class="px-1 py-0.5 rounded bg-muted text-foreground">wss://</code>
-            (not
-            <code class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >ws://</code
-            >)
-          </li>
-          <li>
-            Verify <code class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >local.jmw.nz</code>
-            resolves to
-            <code class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >127.0.0.1</code>
+            Chrome asks before a site can reach local services; allow the
+            local network access prompt
           </li>
         </ul>
       </div>

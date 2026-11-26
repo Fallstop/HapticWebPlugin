@@ -44,7 +44,7 @@
   <title>HapticWeb — MX Master 4 Haptic Feedback API</title>
   <meta
     name="description"
-    content="A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTPS server and WebSocket API." />
+    content="A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTP server and WebSocket API." />
 </svelte:head>
 
 <!-- Hero Section -->
@@ -82,7 +82,7 @@
 
         <p class="text-lg text-muted-foreground">
           A plugin that exposes MX Master 4 haptic feedback through a local
-          HTTPS server and WebSocket API. Add tactile feedback to your web apps,
+          HTTP server and WebSocket API. Add tactile feedback to your web apps,
           games, and creative tools.
         </p>
 
