@@ -41,8 +41,8 @@
     </div>
     <p class="text-sm text-muted-foreground mt-2">
       The server binds to <code
-        class="px-1 py-0.5 rounded bg-muted text-foreground">127.0.0.1</code> only. Browsers treat loopback as a
-      secure context, so HTTPS pages can call it directly.
+        class="px-1 py-0.5 rounded bg-muted text-foreground">127.0.0.1</code> only. Chrome and Firefox treat loopback
+      as a secure context, so HTTPS pages can call it directly (for Safari, see the deprecated section below).
     </p>
 
   </section>

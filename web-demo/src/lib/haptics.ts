@@ -76,6 +76,7 @@ export async function triggerWaveform(waveformApiName: string): Promise<HapticRe
             method: 'POST',
         });
         if (!response.ok) {
+            resolvedApiBase = null; // something else may own the port now; re-probe next time
             console.error('Failed to trigger waveform:', response.statusText);
             return null;
         }

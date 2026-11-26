@@ -194,10 +194,15 @@ export class HapticsWebSocket {
     }
 
     private adopt(ws: WebSocket): void {
+        if (this.ws) {
+            this.ws.onclose = null;
+            this.ws.close();
+        }
         this.ws = ws;
         this.currentReconnectDelay = this.options.initialReconnectDelay; // Reset backoff
 
         ws.onclose = (event) => {
+            if (this.ws !== ws) return; // replaced by a newer connection
             this.ws = null;
             if (!this.isDestroyed) {
                 this.updateState('disconnected', 'websocket_error', event.reason || 'Connection closed');

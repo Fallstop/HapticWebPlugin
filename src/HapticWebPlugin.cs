@@ -77,7 +77,10 @@ namespace Loupedeck.HapticWebPlugin
 
                 this._server.StartHttps(HttpsPort, this._certificateManager.Certificate);
 
-                this.UpdatePluginStatus();
+                if (!this._server.IsDisposed)
+                {
+                    this.UpdatePluginStatus();
+                }
             }
             catch (Exception ex)
             {

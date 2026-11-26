@@ -1,6 +1,6 @@
 /**
- * Primary endpoint: plain HTTP/WS on loopback. Browsers treat 127.0.0.1 as a
- * secure context, so HTTPS pages can call it without mixed-content errors.
+ * Primary endpoint: plain HTTP/WS on loopback. Chrome and Firefox treat 127.0.0.1
+ * as a secure context, so HTTPS pages can call it without mixed-content errors.
  */
 export const API_HOST = '127.0.0.1';
 export const API_PORT = 41080;

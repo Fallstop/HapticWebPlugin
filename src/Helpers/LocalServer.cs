@@ -17,8 +17,10 @@ namespace Loupedeck.HapticWebPlugin.Helpers
     {
         private readonly HapticEndpoint _endpoint;
 
+        private readonly Object _lock = new Object();
         private HapticWsServer _httpServer;
         private HapticWssServer _httpsServer;
+        private Boolean _disposed;
 
         public String HttpError { get; private set; }
         public String HttpsError { get; private set; }
@@ -30,15 +32,23 @@ namespace Loupedeck.HapticWebPlugin.Helpers
 
         public void StartHttp(Int32 port)
         {
-            var server = new HapticWsServer(IPAddress.Loopback, port, this._endpoint);
-            this.HttpError = TryStart(server.Start, port, $"HTTP/WS server started on http://127.0.0.1:{port}/");
-            if (this.HttpError == null)
+            lock (this._lock)
             {
-                this._httpServer = server;
-            }
-            else
-            {
-                server.Dispose();
+                if (this._disposed)
+                {
+                    return;
+                }
+
+                var server = new HapticWsServer(IPAddress.Loopback, port, this._endpoint);
+                this.HttpError = TryStart(server.Start, port, $"HTTP/WS server started on http://127.0.0.1:{port}/");
+                if (this.HttpError == null)
+                {
+                    this._httpServer = server;
+                }
+                else
+                {
+                    server.Dispose();
+                }
             }
         }
 
@@ -51,16 +61,25 @@ namespace Loupedeck.HapticWebPlugin.Helpers
                 return;
             }
 
-            var context = new SslContext(System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13, certificate);
-            var server = new HapticWssServer(context, IPAddress.Loopback, port, this._endpoint);
-            this.HttpsError = TryStart(server.Start, port, $"HTTPS/WSS server started on https://local.jmw.nz:{port}/");
-            if (this.HttpsError == null)
+            lock (this._lock)
             {
-                this._httpsServer = server;
-            }
-            else
-            {
-                server.Dispose();
+                // The certificate download can finish after the plugin has unloaded.
+                if (this._disposed)
+                {
+                    return;
+                }
+
+                var context = new SslContext(System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13, certificate);
+                var server = new HapticWssServer(context, IPAddress.Loopback, port, this._endpoint);
+                this.HttpsError = TryStart(server.Start, port, $"HTTPS/WSS server started on https://local.jmw.nz:{port}/");
+                if (this.HttpsError == null)
+                {
+                    this._httpsServer = server;
+                }
+                else
+                {
+                    server.Dispose();
+                }
             }
         }
 
@@ -93,15 +112,31 @@ namespace Loupedeck.HapticWebPlugin.Helpers
             }
         }
 
+        public Boolean IsDisposed
+        {
+            get
+            {
+                lock (this._lock)
+                {
+                    return this._disposed;
+                }
+            }
+        }
+
         public void Dispose()
         {
-            this._httpServer?.Stop();
-            this._httpServer?.Dispose();
-            this._httpServer = null;
+            lock (this._lock)
+            {
+                this._disposed = true;
 
-            this._httpsServer?.Stop();
-            this._httpsServer?.Dispose();
-            this._httpsServer = null;
+                this._httpServer?.Stop();
+                this._httpServer?.Dispose();
+                this._httpServer = null;
+
+                this._httpsServer?.Stop();
+                this._httpsServer?.Dispose();
+                this._httpsServer = null;
+            }
         }
     }
 

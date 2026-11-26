@@ -18,7 +18,7 @@ A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local H
 
 ## API Server
 
-The plugin runs an HTTP server on `http://127.0.0.1:41080/` when loaded. Browsers treat loopback as a secure context, so HTTPS pages can call it directly.
+The plugin runs an HTTP server on `http://127.0.0.1:41080/` when loaded. Chrome and Firefox treat loopback as a secure context, so HTTPS pages can call it directly (Safari: see the HTTPS fallback below).
 
 ### Which websites can use it
 

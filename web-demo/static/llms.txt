@@ -25,7 +25,7 @@ HapticWeb enables web applications to trigger haptic feedback on Logitech MX Mas
 
 ## API Overview
 
-The plugin runs an HTTP server on `http://127.0.0.1:41080/` when loaded. Browsers treat loopback as a secure context, so HTTPS pages can call it directly.
+The plugin runs an HTTP server on `http://127.0.0.1:41080/` when loaded. Chrome and Firefox treat loopback as a secure context, so HTTPS pages can call it directly.
 
 ### REST Endpoints
 
