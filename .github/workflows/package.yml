@@ -20,7 +20,8 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Install logiplugintool
-        run: dotnet tool install --global logiplugintool
+        # Pinned: 6.4.x ships a PluginApi built for .NET 10, which a net8.0 plugin can't compile against
+        run: dotnet tool install --global logiplugintool --version 6.1.4.22672
 
       - name: Extract PluginApi.dll
         shell: pwsh
