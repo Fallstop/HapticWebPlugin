@@ -44,13 +44,18 @@ let resolvedApiBase: Promise<string | null> | null = null;
 
 async function findApiBase(): Promise<string | null> {
     for (const baseUrl of API_BASE_URLS) {
+        // AbortController rather than AbortSignal.timeout(), which Safari only has from 16
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
         try {
-            const response = await fetch(baseUrl + '/', { method: 'GET', signal: AbortSignal.timeout(3000) });
+            const response = await fetch(baseUrl + '/', { method: 'GET', signal: controller.signal });
             if (response.ok && (await response.json())?.service === 'HapticWebPlugin') {
                 return baseUrl;
             }
         } catch {
             // Not reachable from this page (not running, blocked as mixed content, or timed out); try the next one
+        } finally {
+            clearTimeout(timeoutId);
         }
     }
     return null;

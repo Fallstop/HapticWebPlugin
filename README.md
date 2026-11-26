@@ -197,7 +197,7 @@ If WebSocket connections fail:
 1. Verify the server is running: `curl http://127.0.0.1:41080/`
 2. Check browser console for errors
 3. In Chrome, allow the local network access prompt
-4. In Safari, use the HTTPS fallback `wss://local.jmw.nz:41443/ws` and verify `local.jmw.nz` resolves to `127.0.0.1`: `ping local.jmw.nz`
+4. In Safari, use the HTTPS fallback `wss://local.jmw.nz:41443/ws` and verify it is running: `curl https://local.jmw.nz:41443/` (if that fails, check the plugin status in Logi Options+ and that `local.jmw.nz` resolves to `127.0.0.1`)
 
 ## MIT License
 
