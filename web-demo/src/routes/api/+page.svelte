@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge";
   import { Separator } from "$lib/components/ui/separator";
-  import { API_BASE_URL, API_HOST, API_PORT } from "$lib/config";
+  import { API_BASE_URL, API_HOST, API_PORT, FALLBACK_API_BASE_URL } from "$lib/config";
   import { WAVEFORMS } from "$lib/haptics";
   import Check from "@lucide/svelte/icons/check";
   import Copy from "@lucide/svelte/icons/copy";
@@ -40,8 +40,16 @@
       {API_BASE_URL}
     </div>
     <p class="text-sm text-muted-foreground mt-2">
-      All REST endpoints are served over HTTPS. The server binds to <code
-        class="px-1 py-0.5 rounded bg-muted text-foreground">127.0.0.1</code> only.
+      The server binds to <code
+        class="px-1 py-0.5 rounded bg-muted text-foreground">127.0.0.1</code> only. Browsers treat loopback as a
+      secure context, so HTTPS pages can call it directly.
+    </p>
+    <p class="text-sm text-muted-foreground mt-2">
+      Safari still blocks plain <code class="px-1 py-0.5 rounded bg-muted text-foreground">http://</code>/<code
+        class="px-1 py-0.5 rounded bg-muted text-foreground">ws://</code> requests to localhost from HTTPS pages.
+      For Safari, fall back to the deprecated HTTPS endpoint <code
+        class="px-1 py-0.5 rounded bg-muted text-foreground">{FALLBACK_API_BASE_URL}</code>, which will be removed once
+      Safari allows loopback requests, or by November 2027 at the latest.
     </p>
   </section>
 
@@ -60,7 +68,7 @@
           <code class="font-mono">/</code>
         </div>
         <p class="text-muted-foreground">
-          Health check. Returns service info and available endpoints.
+          Health check. Confirms the haptics service is running.
         </p>
 
         <div class="relative">
@@ -84,14 +92,7 @@
           <pre
             class="mt-2 bg-muted/30 rounded-lg p-4 text-xs font-mono text-muted-foreground overflow-x-auto">{`{
   "success": true,
-  "service": "HapticWebPlugin",
-  "version": "1.0.0",
-  "endpoints": {
-    "/": "Health check",
-    "/waveforms": "List available waveforms",
-    "/haptic/{waveform}": "Trigger haptic (POST)",
-    "/ws": "WebSocket endpoint"
-  }
+  "service": "HapticWebPlugin"
 }`}</pre>
         </details>
       </div>
@@ -205,7 +206,7 @@
 
     <div class="space-y-4">
       <div class="p-4 rounded-lg bg-muted">
-        <p class="font-mono text-sm">wss://{API_HOST}:{API_PORT}/ws</p>
+        <p class="font-mono text-sm">ws://{API_HOST}:{API_PORT}/ws</p>
       </div>
 
       <div class="space-y-2">
@@ -226,7 +227,7 @@
 
       <div class="relative">
         <pre
-          class="bg-muted/50 rounded-lg p-4 pr-12 overflow-x-auto text-sm font-mono">{`const ws = new WebSocket('wss://${API_HOST}:${API_PORT}/ws');
+          class="bg-muted/50 rounded-lg p-4 pr-12 overflow-x-auto text-sm font-mono">{`const ws = new WebSocket('ws://${API_HOST}:${API_PORT}/ws');
 
 ws.onopen = () => {
   // Trigger waveform at index 0 (sharp_collision)
@@ -235,7 +236,7 @@ ws.onopen = () => {
         <button
           onclick={() =>
             copyToClipboard(
-              `const ws = new WebSocket('wss://${API_HOST}:${API_PORT}/ws');\n\nws.onopen = () => {\n  // Trigger waveform at index 0 (sharp_collision)\n  ws.send(new Uint8Array([0]));\n};`,
+              `const ws = new WebSocket('ws://${API_HOST}:${API_PORT}/ws');\n\nws.onopen = () => {\n  // Trigger waveform at index 0 (sharp_collision)\n  ws.send(new Uint8Array([0]));\n};`,
               3
             )}
           class="absolute top-3 right-3 p-1.5 rounded-md hover:bg-muted transition-colors">

@@ -1,6 +1,6 @@
 # HapticWeb
 
-> A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTPS server and WebSocket API.
+> A Logi Actions SDK plugin that exposes MX Master 4 haptic feedback via a local HTTP server and WebSocket API.
 
 HapticWeb enables web applications to trigger haptic feedback on Logitech MX Master 4 mice through a simple REST and WebSocket API running locally.
 
@@ -25,19 +25,21 @@ HapticWeb enables web applications to trigger haptic feedback on Logitech MX Mas
 
 ## API Overview
 
-The plugin runs an HTTPS server on `https://local.jmw.nz:41443/` when loaded.
+The plugin runs an HTTP server on `http://127.0.0.1:41080/` when loaded. Browsers treat loopback as a secure context, so HTTPS pages can call it directly.
+
+Safari still blocks `http://`/`ws://` to localhost from HTTPS pages, so the same API is also served on `https://local.jmw.nz:41443/` as a deprecated fallback. It will be removed once Safari allows loopback requests, or by November 2027 at the latest. Try `127.0.0.1:41080` first and fall back only when that fails.
 
 ### REST Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Health check with service info and available endpoints |
+| `/` | GET | Health check (`{"success": true, "service": "HapticWebPlugin"}`) |
 | `/waveforms` | GET | List all 15 available haptic waveforms |
 | `/haptic/{waveform}` | POST | Trigger a specific haptic waveform |
 
 ### WebSocket Endpoint
 
-`wss://local.jmw.nz:41443/ws`
+`ws://127.0.0.1:41080/ws` (Safari fallback: `wss://local.jmw.nz:41443/ws`)
 
 Send a single byte containing the waveform index (0-14) to trigger haptic feedback.
 
@@ -67,13 +69,13 @@ Send a single byte containing the waveform index (0-14) to trigger haptic feedba
 
 ```bash
 # Trigger haptic feedback
-curl -X POST -d '' https://local.jmw.nz:41443/haptic/sharp_collision
+curl -X POST -d '' http://127.0.0.1:41080/haptic/sharp_collision
 ```
 
 ### WebSocket Example (JavaScript)
 
 ```javascript
-const ws = new WebSocket('wss://local.jmw.nz:41443/ws');
+const ws = new WebSocket('ws://127.0.0.1:41080/ws');
 
 ws.onopen = () => {
   // Trigger "completed" waveform (index 7)
@@ -83,10 +85,9 @@ ws.onopen = () => {
 
 ## Technical Details
 
-- **Server:** NetCoreServer-based HTTPS/WSS
-- **Port:** 41443 (HTTPS only)
-- **Certificate:** Auto-managed, uses local.jmw.nz domain
-- **CORS:** Enabled for any origin
+- **Server:** NetCoreServer-based HTTP/WS, plus HTTPS/WSS fallback
+- **Ports:** 41080 (HTTP), 41443 (HTTPS fallback for Safari, deprecated)
+- **CORS:** Enabled for any origin (any website can trigger haptics; Chrome asks the user first)
 - **Binding:** 127.0.0.1 only
 
 ## License

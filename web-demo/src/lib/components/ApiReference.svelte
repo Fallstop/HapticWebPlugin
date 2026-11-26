@@ -36,9 +36,7 @@
       curl: `curl ${API_BASE}/`,
       response: `{
   "success": true,
-  "service": "HapticWebPlugin",
-  "version": "1.0.0",
-  "endpoints": { ... }
+  "service": "HapticWebPlugin"
 }`,
     },
     {
@@ -98,7 +96,7 @@
     <CardDescription>
       REST API endpoints for integrating haptic feedback. The WebSocket endpoint
       <code class="px-1.5 py-0.5 rounded bg-muted font-mono text-xs"
-        >wss://{API_HOST}:{API_PORT}/ws</code>
+        >ws://{API_HOST}:{API_PORT}/ws</code>
       provides lower latency for real-time triggering.
     </CardDescription>
   </CardHeader>

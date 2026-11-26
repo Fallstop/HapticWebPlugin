@@ -1,6 +1,4 @@
-import { API_BASE_URL } from './config';
-
-const API_BASE = API_BASE_URL;
+import { API_BASE_URLS } from './config';
 
 import waveformsData from '$lib/data/waveforms.json';
 
@@ -41,9 +39,40 @@ export interface HapticResponse {
     waveform: string;
 }
 
+// Base URL that last answered as the haptics service (plain HTTP first, HTTPS fallback for Safari)
+let resolvedApiBase: Promise<string | null> | null = null;
+
+async function findApiBase(): Promise<string | null> {
+    for (const baseUrl of API_BASE_URLS) {
+        try {
+            const response = await fetch(baseUrl + '/', { method: 'GET' });
+            if (response.ok && (await response.json())?.service === 'HapticWebPlugin') {
+                return baseUrl;
+            }
+        } catch {
+            // Not reachable from this page (not running, or blocked as mixed content); try the next one
+        }
+    }
+    return null;
+}
+
+function getApiBase(): Promise<string | null> {
+    resolvedApiBase ??= findApiBase().then((base) => {
+        if (base === null) resolvedApiBase = null; // retry on the next call
+        return base;
+    });
+    return resolvedApiBase;
+}
+
 export async function triggerWaveform(waveformApiName: string): Promise<HapticResponse | null> {
+    const apiBase = await getApiBase();
+    if (apiBase === null) {
+        console.error('Failed to trigger waveform: haptics service not reachable');
+        return null;
+    }
+
     try {
-        const response = await fetch(`${API_BASE}/haptic/${waveformApiName}`, {
+        const response = await fetch(`${apiBase}/haptic/${waveformApiName}`, {
             method: 'POST',
         });
         if (!response.ok) {
@@ -52,18 +81,15 @@ export async function triggerWaveform(waveformApiName: string): Promise<HapticRe
         }
         return await response.json();
     } catch (error) {
+        resolvedApiBase = null; // the service may have moved (e.g. restarted without HTTPS)
         console.error('Failed to trigger waveform:', error);
         return null;
     }
 }
 
 export async function healthCheck(): Promise<boolean> {
-    try {
-        const response = await fetch(API_BASE, { method: 'GET' });
-        return response.ok;
-    } catch {
-        return false;
-    }
+    resolvedApiBase = null;
+    return (await getApiBase()) !== null;
 }
 
 // Convert waveform encoding to chart-friendly data

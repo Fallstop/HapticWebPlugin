@@ -28,7 +28,8 @@
     }
   }
 
-  const wsExample = `const ws = new WebSocket('wss://local.jmw.nz:41443/ws');
+  const wsExample = `// Safari: use 'wss://local.jmw.nz:41443/ws' instead (deprecated fallback)
+const ws = new WebSocket('ws://127.0.0.1:41080/ws');
 
 ws.onopen = () => {
   console.log('Connected to HapticWeb');
@@ -41,13 +42,13 @@ ws.onopen = () => {
 };`;
 
   const restExample = `// Trigger a haptic waveform
-await fetch('https://local.jmw.nz:41443/haptic/sharp_collision', {
+await fetch('http://127.0.0.1:41080/haptic/sharp_collision', {
   method: 'POST',
   body: ''
 });
 
 // Get available waveforms
-const waveforms = await fetch('https://local.jmw.nz:41443/waveforms')
+const waveforms = await fetch('http://127.0.0.1:41080/waveforms')
   .then(res => res.json());`;
 
   function testHaptic(name: string) {
@@ -143,7 +144,9 @@ const waveforms = await fetch('https://local.jmw.nz:41443/waveforms')
           <li>
             Connect to <code
               class="px-1 py-0.5 rounded bg-muted text-foreground"
-              >wss://local.jmw.nz:41443/ws</code>
+              >ws://127.0.0.1:41080/ws</code>
+            (Safari: <code class="px-1 py-0.5 rounded bg-muted text-foreground"
+              >wss://local.jmw.nz:41443/ws</code>, deprecated)
           </li>
           <li>Send a single byte containing the waveform index (0-15)</li>
           <li>

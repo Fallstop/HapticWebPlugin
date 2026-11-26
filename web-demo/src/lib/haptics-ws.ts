@@ -5,10 +5,11 @@
  * - Auto-reconnect with exponential backoff (capped at 15s)
  * - Pre-allocated buffer for zero-allocation sends
  * - Service validation to detect wrong service on port
+ * - Tries plain ws://127.0.0.1 first, then the HTTPS fallback (for Safari)
  * - Graceful error handling for connection refused, timeout, wrong service
  */
 
-import { API_BASE_URL } from './config';
+import { API_BASE_URLS } from './config';
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
 
@@ -21,8 +22,11 @@ export type ErrorType =
     | 'ssl_error';              // Certificate issue
 
 export interface HapticsWebSocketOptions {
-    /** Base URL for the haptics service (default: 'https://local.jmw.nz:41443') */
-    baseUrl?: string;
+    /**
+     * Base URLs for the haptics service, tried in order
+     * (default: ['http://127.0.0.1:41080', 'https://local.jmw.nz:41443'])
+     */
+    baseUrls?: string[];
     /** Initial reconnect delay in ms (default: 1000) */
     initialReconnectDelay?: number;
     /** Maximum reconnect delay in ms (default: 15000) */
@@ -40,7 +44,7 @@ export interface HapticsWebSocketState {
 }
 
 const DEFAULT_OPTIONS: Required<Omit<HapticsWebSocketOptions, 'onStateChange'>> = {
-    baseUrl: API_BASE_URL,
+    baseUrls: API_BASE_URLS,
     initialReconnectDelay: 1000,
     maxReconnectDelay: 15000,
     connectionTimeout: 5000,
@@ -121,8 +125,8 @@ export class HapticsWebSocket {
             null
         );
 
-        // First, validate the service is correct by checking the health endpoint
-        const validation = await this.validateService();
+        // First, find an endpoint that answers as the haptics service
+        const validation = await this.findService();
         if (!validation.valid) {
             this.updateState('disconnected', validation.errorType, validation.errorMessage);
             this.scheduleReconnect();
@@ -130,7 +134,7 @@ export class HapticsWebSocket {
         }
 
         // Now attempt WebSocket connection
-        const wsUrl = this.options.baseUrl.replace(/^http/, 'ws') + '/ws';
+        const wsUrl = validation.baseUrl.replace(/^http/, 'ws') + '/ws';
 
         try {
             this.ws = new WebSocket(wsUrl);
@@ -171,12 +175,32 @@ export class HapticsWebSocket {
         }
     }
 
-    private async validateService(): Promise<{ valid: boolean; errorType: ErrorType; errorMessage: string | null }> {
+    /**
+     * Try each base URL in order and return the first that answers as the haptics service.
+     * If none do, report the most specific error (anything over "connection refused").
+     */
+    private async findService(): Promise<{ valid: true; baseUrl: string } | { valid: false; errorType: ErrorType; errorMessage: string | null }> {
+        let failure: { valid: false; errorType: ErrorType; errorMessage: string | null } | null = null;
+
+        for (const baseUrl of this.options.baseUrls) {
+            const result = await this.validateService(baseUrl);
+            if (result.valid) {
+                return { valid: true, baseUrl };
+            }
+            if (!failure || failure.errorType === 'connection_refused') {
+                failure = result;
+            }
+        }
+
+        return failure ?? { valid: false, errorType: 'connection_refused', errorMessage: 'Cannot connect to haptics service' };
+    }
+
+    private async validateService(baseUrl: string): Promise<{ valid: false; errorType: ErrorType; errorMessage: string | null } | { valid: true }> {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.options.connectionTimeout);
 
         try {
-            const response = await fetch(this.options.baseUrl + '/', {
+            const response = await fetch(baseUrl + '/', {
                 method: 'GET',
                 signal: controller.signal,
             });
@@ -197,7 +221,7 @@ export class HapticsWebSocket {
                 };
             }
 
-            return { valid: true, errorType: 'none', errorMessage: null };
+            return { valid: true };
 
         } catch (error) {
             clearTimeout(timeoutId);
